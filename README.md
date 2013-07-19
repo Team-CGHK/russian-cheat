@@ -1,0 +1,1 @@
+The project is an implementation of a card game named "Russian Cheat" or "Верю-не верю".
