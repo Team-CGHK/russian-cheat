@@ -12,6 +12,12 @@ public abstract class Player
 
     abstract public DependentTurnResult dependentTurn(int declaredCard, int cardsOnBoardCount, int actualCardsCount);
 
+    public class DeckException extends Exception{
+          String message;
+        DeckException(String msg){
+           message = msg;
+        }
+}
     class FirstTurnResult
     {
         int declaredCardValue;
@@ -25,13 +31,13 @@ public abstract class Player
         int[] cards;
     }
 
-    public void takeCard(int card) throws Exception
+    public void takeCard(int card) throws DeckException
     {
         if (!cards[card])
             cards[card] = true;
         else
         {
-            throw new Exception("Error! The deck has only one copy of this card!");
+            throw new DeckException("Error! The deck has only one copy of this card!");
         }
     }
 
