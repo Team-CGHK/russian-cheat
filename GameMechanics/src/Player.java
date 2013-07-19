@@ -1,5 +1,6 @@
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 
+
 public abstract class Player
 {
     private boolean[] cards;
@@ -24,13 +25,13 @@ public abstract class Player
         int[] cards;
     }
 
-    public void takeCard(int card)
+    public void takeCard(int card) throws Exception
     {
         if (!cards[card])
             cards[card] = true;
         else
         {
-            //TODO exception
+            throw new Exception("Error! The deck has only one copy of this card!");
         }
     }
 
