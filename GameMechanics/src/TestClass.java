@@ -6,4 +6,8 @@
  * To change this template use File | Settings | File Templates.
  */
 public class TestClass {
+    public static void Main(String[] args)
+    {
+        System.out.print("hello, world!");
+    }
 }
