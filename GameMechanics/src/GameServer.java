@@ -26,7 +26,7 @@ public class GameServer {
 
     private int deckSize;
 
-    private void StartGame() {
+    private void StartGame() throws Exception {
         Deal();
         currentGameState = GameState.hasStarted;
         Random r = new Random();
@@ -54,7 +54,7 @@ public class GameServer {
         }
     }
 
-    private void Deal() {
+    private void Deal() throws Exception {
         int[] deck = new int[deckSize];
         for (int i = 0; i < deckSize; i++)
             deck[i] = i;
