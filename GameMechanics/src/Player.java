@@ -32,6 +32,8 @@ public abstract class Player
         else
         {
             throw new Exception("Error! The deck has only one copy of this card!");
+            //TODO create a child class extending Exception to provide an additional error info in it's fields - DeckException
+            //(low priopity)
         }
     }
 
