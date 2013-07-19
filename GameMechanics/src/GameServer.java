@@ -26,7 +26,7 @@ public class GameServer {
 
     private int deckSize;
 
-    private void StartGame() throws Exception {
+    private void StartGame() throws Player.DeckException {
         Deal();
         currentGameState = GameState.hasStarted;
         Random r = new Random();
@@ -42,8 +42,8 @@ public class GameServer {
                     onBoardCardsCount += a.length;
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
-                if (result.isChecking)
-                {
+                if (result.isChecking){
+
                     //TODO checking
                 }
                 else
@@ -54,7 +54,7 @@ public class GameServer {
         }
     }
 
-    private void Deal() throws Exception {
+    private void Deal() throws Player.DeckException {
         int[] deck = new int[deckSize];
         for (int i = 0; i < deckSize; i++)
             deck[i] = i;
