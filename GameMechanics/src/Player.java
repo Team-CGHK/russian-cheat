@@ -1,24 +1,44 @@
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
+
 public abstract class Player
 {
-    private boolean[] cards = new boolean[52];
+    private boolean[] cards;
 
     private String name;
     public String getName() {return name;}
 
-    abstract public FirstTurnResult FirstTurn();
+    abstract public FirstTurnResult firstTurn();
 
-    abstract public DependentTurnResult DependentTurn(int declaredCard, boolean[] boardCards, String[] actualCards);
+    abstract public DependentTurnResult dependentTurn(int declaredCard, int cardsOnBoardCount, int actualCardsCount);
 
     class FirstTurnResult
     {
         int declaredCardValue;
-        String[] cards;
+        int[] cards;
     }
 
     class DependentTurnResult
     {
         boolean isChecking;
         int cardToCheck;
-        String[] cards;
+        int[] cards;
+    }
+
+    public void takeCard(int card)
+    {
+        if (!cards[card])
+            cards[card] = true;
+        else
+        {
+            //TODO exception
+        }
+    }
+
+    public boolean hasCards()
+    {
+        boolean result = false;
+        for (int i = 0; i<cards.length && !result; i++)
+            result |= cards[i];
+        return result;
     }
 }
