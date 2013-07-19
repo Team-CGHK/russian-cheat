@@ -3,7 +3,7 @@ public abstract class Player
     private boolean[] cards = new boolean[52];
 
     private String name;
-    public String getName {return name;}
+    public String getName() {return name;}
 
     abstract public FirstTurnResult FirstTurn();
 
