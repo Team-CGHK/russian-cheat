@@ -47,4 +47,18 @@ public abstract class Player {
             result |= cards[i];
         return result;
     }
+
+    //card is 52-cards deck card value
+    public boolean hasCard(int card) {
+        return cards[card];
+    }
+
+    public int cardsOfValue(Card.CardValue value) {
+        int count = 0;
+        for (Card.CardSuit suit : Card.CardSuit.values()) {
+            if (hasCard(Card.getCardIndex(value, suit)))
+                count++;
+        }
+        return count;
+    }
 }

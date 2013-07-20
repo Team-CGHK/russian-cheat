@@ -2,8 +2,6 @@
  * Created by hotkey on 20.07.13.
  */
 
-//PLEASE DON'T REFORMAT THIS FILE
-
 public class Card {
 
     // Card instances should never be created => the ctor is private
@@ -11,37 +9,54 @@ public class Card {
     }
 
     public static enum CardSuit {
-        Clubs, Diamonds, Hearts, Spades
+        Clubs(0), Diamonds(1), Hearts(2), Spades(3);
+
+        private int code;
+
+        public int getCode() {
+            return code;
+        }
+
+        CardSuit(int c) {
+            code = c;
+        }
     }
 
-    // value is 0..N-1, where 0 is the lowest card, N-1 is Ace
-    // in 52-cards deck 0 == "2", 12 == Ace,
-    // in 36-cards deck 0 == "6",  8 == Ace
-    public static int getCardIndex(int value, CardSuit suit, int deckSize) {
-        int suitOffset =
-                suit == CardSuit.Clubs    ? 0 :
-                suit == CardSuit.Diamonds ? 1 :
-                suit == CardSuit.Hearts   ? 2 :
-             /* suit == CardSuit.Spades  */ 3;
-        int cardValueIn52Deck = value + (52 - deckSize) / 4;
-        return suitOffset * deckSize / 4 + cardValueIn52Deck;
+    public static enum CardValue {
+        Two(0), Three(1), Four(2), Five(3), Six(4), Seven(5), Eight(6), Nine(7), Ten(8), Jack(9), Queen(10), King(11), Ace(12);
+        //TODO decide, whether we need Jokers in a deck
+
+        private int code;
+
+        public int getCode() {
+            return code;
+        }
+
+        CardValue(int c) {
+            code = c;
+        }
+    }
+
+    public static final int MAX_DECK_SIZE = 52;
+
+    public static int getCardIndex(CardValue value, CardSuit suit) {
+        return suit.getCode() * (MAX_DECK_SIZE / 4) + value.getCode();
     }
 
     // cardIndex here and below is card position in 52-cards deck, for example, 11 == K♣
-    public static CardSuit getCardSuit(int cardIndex, int deckSize)
-    {
-        int suitValue = cardIndex / (deckSize/4);
-        return
-                suitValue == 0 ? CardSuit.Clubs :
-                suitValue == 1 ? CardSuit.Diamonds :
-                suitValue == 2 ? CardSuit.Hearts :
-             /* suitValue == 3 */CardSuit.Spades;
+    public static CardSuit getCardSuit(int cardIndex, int deckSize) {
+        int suitCode = cardIndex / (MAX_DECK_SIZE / 4);
+        for (CardSuit suit : CardSuit.values())
+            if (suit.getCode() == suitCode)
+                return suit;
+        return null;
     }
 
-    // return value is 0 for lowest card in a deck of specified size, (deckSize/4 - 1) for the Ace
-    public static int getCardValue(int cardIndex, int deckSize)
-    {
-        int cardValueIn52Deck = cardIndex % (deckSize/4);
-        return cardValueIn52Deck - (52-deckSize) / 4;
+    public static CardValue getCardValue(int cardIndex, int deckSize) {
+        int valueCode = cardIndex % (MAX_DECK_SIZE / 4);
+        for (CardValue value : CardValue.values())
+            if (value.getCode() == valueCode)
+                return value;
+        return null;
     }
 }
