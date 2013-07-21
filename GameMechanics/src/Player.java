@@ -13,9 +13,13 @@ public abstract class Player {
     abstract public DependentTurnResult dependentTurn(int declaredCard, int cardsOnBoardCount, int actualCardsCount);
 
     public class DeckException extends Exception {
-        //TODO decide, which additional info should be stored. May be, card value and/or entire player object?
-        DeckException(String msg) {
+        Player problemPlayer;
+        int problemCard;
+
+        DeckException(String msg, int card) {
             super(msg);
+            problemPlayer = Player.this;
+            problemCard = card;
         }
     }
 
@@ -34,7 +38,7 @@ public abstract class Player {
         if (!cards[card])
             cards[card] = true;
         else {
-            throw new DeckException("The deck already has this card");
+            throw new DeckException("The player's deck already contains the card", card);
         }
     }
 
@@ -43,5 +47,19 @@ public abstract class Player {
         for (int i = 0; i < cards.length && !result; i++)
             result |= cards[i];
         return result;
+    }
+
+    //card is 52-cards deck card value
+    public boolean hasCard(int card) {
+        return cards[card];
+    }
+
+    public int cardsOfValue(Card.CardValue value) {
+        int count = 0;
+        for (Card.CardSuit suit : Card.CardSuit.values()) {
+            if (hasCard(Card.getCardIndex(value, suit)))
+                count++;
+        }
+        return count;
     }
 }

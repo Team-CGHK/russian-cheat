@@ -1,3 +1,5 @@
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.util.List;
 import java.util.Random;
     //
@@ -81,10 +83,14 @@ public class GameServer {
                 places[i] = players.length - (--playersInGame);
             }
         }
-        //TODO draw situation
-        if (playersInGame == 1) {
+        if (playersInGame == 1 || isDraw()) {
             currentGameState = GameState.hasFinished;
         }
+    }
+
+    private boolean isDraw() {
+        //TODO checking for a draw situation
+        throw new NotImplementedException();
     }
 
 }
