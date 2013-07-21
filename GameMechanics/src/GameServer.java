@@ -1,8 +1,6 @@
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.List;
 import java.util.Random;
-    //
+
 /**
  * Created with IntelliJ IDEA.
  * User: 1
@@ -24,7 +22,7 @@ public class GameServer {
     private GameState currentGameState;
     // board
     private List<int[]> cardsOnBoard;
-    private int declaredCard;
+    private Card.CardValue declaredCard;
 
     private int deckSize;
 
@@ -38,18 +36,30 @@ public class GameServer {
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn();
                 declaredCard = result.declaredCardValue;
                 cardsOnBoard.add(result.cards);
+                for (int card : result.cards)
+                    players[currentPlayerIndex].dropCard(card);
             } else {
                 int onBoardCardsCount = 0;
                 for (int[] a : cardsOnBoard)
                     onBoardCardsCount += a.length;
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
-                if (result.isChecking){
-
-                    //TODO checking
-                }
-                else
+                if (result.isChecking) {
+                    // if the guess is right, all the cards on board go to the previous player, and the next turn
+                    // will be the current player's turn. otherwise, current player takes the cards and loses his turn;
+                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) == declaredCard)
+                        currentPlayerIndex--;
+                    for (int[] cardLayer : cardsOnBoard)
+                        for (int card : cardLayer)
+                            players[currentPlayerIndex].takeCard(card);
+                    //TODO a method to check if the player has four cards of any value (make him drop them in this case)
+                    //may be, the best way is to check only values, present in cardsOnBoard. use Player.dropCard(..);
+                    cardsOnBoard.clear();
+                } else {
                     cardsOnBoard.add(result.cards);
+                    for (int card : result.cards)
+                        players[currentPlayerIndex].dropCard(card);
+                }
             }
             currentPlayerIndex++;
             currentPlayerIndex %= players.length;
@@ -89,8 +99,15 @@ public class GameServer {
     }
 
     private boolean isDraw() {
-        //TODO checking for a draw situation
-        throw new NotImplementedException();
+        //the draw is the situation, when only Aces are present in players' decks
+        for (Card.CardValue value : Card.CardValue.values()) {
+            if (value != Card.CardValue.Ace)
+                for (Player player : players)
+                    if (player.cardsOfValue(value) > 0)
+                        return false;
+        }
+        //TODO may be optimized: we can store card values that have been dropped and not check them
+        return true;
     }
 
 }
