@@ -6,11 +6,21 @@ public abstract class Player {
     public String getName() {
         return name;
     }
-    //TODO: переписать FirstTurn, DependentTurn и их результаты, чтобы declaredCard было типа Card.CardValue
 
     abstract public FirstTurnResult firstTurn();
 
-    abstract public DependentTurnResult dependentTurn(int declaredCard, int cardsOnBoardCount, int actualCardsCount);
+    abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount);
+
+    class FirstTurnResult {
+        Card.CardValue declaredCardValue;
+        int[] cards;
+    }
+
+    class DependentTurnResult {
+        boolean isChecking;
+        int cardToCheck;
+        int[] cards;
+    }
 
     public class DeckException extends Exception {
         Player problemPlayer;
@@ -23,23 +33,18 @@ public abstract class Player {
         }
     }
 
-    class FirstTurnResult {
-        int declaredCardValue;
-        int[] cards;
-    }
-
-    class DependentTurnResult {
-        boolean isChecking;
-        int cardToCheck;
-        int[] cards;
-    }
-
     public void takeCard(int card) throws DeckException {
         if (!cards[card])
             cards[card] = true;
-        else {
+        else
             throw new DeckException("The player's deck already contains the card", card);
-        }
+    }
+
+    public void dropCard(int card) throws DeckException {
+        if (cards[card])
+            cards[card] = false;
+        else
+            throw new DeckException("The player's deck doesn't contain the card to remove", card);
     }
 
     public boolean hasCards() {

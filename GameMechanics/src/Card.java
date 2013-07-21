@@ -23,7 +23,7 @@ public class Card {
     }
 
     // cardIndex here and below is card position in 52-cards deck, for example, 11 == K♣
-    public static CardSuit getCardSuit(int cardIndex, int deckSize) {
+    public static CardSuit getCardSuit(int cardIndex) {
         int suitCode = cardIndex / (MAX_DECK_SIZE / 4);
         for (CardSuit suit : CardSuit.values())
             if (suit.ordinal() == suitCode)
@@ -31,7 +31,7 @@ public class Card {
         return null;
     }
 
-    public static CardValue getCardValue(int cardIndex, int deckSize) {
+    public static CardValue getCardValue(int cardIndex) {
         int valueCode = cardIndex % (MAX_DECK_SIZE / 4);
         for (CardValue value : CardValue.values())
             if (value.ordinal() == valueCode)
