@@ -6,6 +6,7 @@ public abstract class Player {
     public String getName() {
         return name;
     }
+    //TODO: переписать FirstTurn, DependentTurn и их результаты, чтобы declaredCard было типа Card.CardValue
 
     abstract public FirstTurnResult firstTurn();
 
