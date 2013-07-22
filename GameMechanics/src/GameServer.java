@@ -76,17 +76,15 @@ public class GameServer {
        boolean [] CardValues = new boolean [13];
        for (int [] c: cardsOnBoard) {
            for (int one : c)   {
-               if (!CardValues[one%13]) {// it means this card has not been tested
-                   CardValues[one%13] = true;
+               one = Card.getCardValue(one).ordinal();
+               if (!CardValues[one]) {// it means this card has not been tested
+                   CardValues[one] = true;
                     int count = 0;
-                    count+=players[currentPlayerIndex].cardsOfValue(Card.CardValue.values()[one%13]);
+                    count+=players[currentPlayerIndex].cardsOfValue(Card.CardValue.values()[one]);
                     //This is sufficient because all that was on the table is already in the player's cards
                     if (count==4)  {
-                        one %=13;
-                        for (int i =0; i<4; i++)    {
-                            players[currentPlayerIndex].dropCard(one);
-                            one+=13;
-                        }
+                        for (Card.CardSuit suit : Card.CardSuit.values())
+                            players[currentPlayerIndex].dropCard(Card.getCardIndex(Card.getCardValue(one), suit));
                     }
                }
            }
@@ -119,7 +117,7 @@ public class GameServer {
             boolean playerHasCards = places[i] != 0 && players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
-                //TODO use checkPlayersStates in game proccess and actualize ignoring player without cards later in a game
+                //TODO use checkPlayersStates in game process and actualize ignoring player without cards later in a game
             }
         }
         if (playersInGame == 1 || isDraw()) {
