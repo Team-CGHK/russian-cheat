@@ -47,8 +47,11 @@ public class GameServer {
                 if (result.isChecking) {
                     // if the guess is right, all the cards on board go to the previous player, and the next turn
                     // will be the current player's turn. otherwise, current player takes the cards and loses his turn;
-                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) == declaredCard)
-                        currentPlayerIndex--;
+                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard)  // != declaredCard
+                        //If current player checked card and realised that it equals declared card on the contrary ^ he must take cards from board!
+                        currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length;// because if currentPlayerIndex == 0, next currentPlayerIndex = -1!
+
+
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
