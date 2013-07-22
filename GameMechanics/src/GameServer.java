@@ -54,8 +54,7 @@ public class GameServer {
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
-
-                    //TODO a method to check if the player has four cards of any value (make him drop them in this case)
+                    DropFourIdenticalValueCards();
                     //may be, the best way is to check only values, present in cardsOnBoard. use Player.dropCard(..);
                     cardsOnBoard.clear();
                 } else {
@@ -69,6 +68,29 @@ public class GameServer {
             currentPlayerIndex %= players.length;
         }
     }
+
+    private void DropFourIdenticalValueCards() throws Player.DeckException  {
+
+       boolean [] CardValues = new boolean [13];
+       for (int [] c: cardsOnBoard) {
+           for (int one : c)   {
+               if (!CardValues[one%13]) {// it means this card has not been tested
+                   CardValues[one%13] = true;
+                    int count = 0;
+                    count+=players[currentPlayerIndex].cardsOfValue(Card.CardValue.values()[one%13]);
+                    //This is sufficient because all that was on the table is already in the player's cards
+                    if (count==4)  {
+                        one %=13;
+                        for (int i =0; i<4; i++)    {
+                            players[currentPlayerIndex].dropCard(one);
+                            one+=13;
+                        }
+                    }
+               }
+           }
+       }
+    }
+
 
     private void Deal() throws Player.DeckException {
         int[] deck = new int[deckSize];
