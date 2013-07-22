@@ -48,8 +48,13 @@ public class GameServer {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
                     // go to the previous player, and the next turn will be the current player's turn.
                     // otherwise, current player takes the cards and loses his turn;
-                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard)  // != declaredCard
+                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard) { // != declaredCard
+                        do  {
                         currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length; //previous player
+                        }
+                            while (places[currentPlayerIndex] != 0);
+
+                    }
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
@@ -119,7 +124,6 @@ public class GameServer {
             boolean playerHasCards = places[i] != 0 && players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
-                //TODO use checkPlayersStates in game process and actualize ignoring player without cards later in a game
             }
         }
         if (playersInGame == 1 || isDraw()) {
