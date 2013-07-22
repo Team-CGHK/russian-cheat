@@ -45,16 +45,14 @@ public class GameServer {
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 if (result.isChecking) {
-                    // if the guess is right, all the cards on board go to the previous player, and the next turn
-                    // will be the current player's turn. otherwise, current player takes the cards and loses his turn;
+                    // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
+                    // go to the previous player, and the next turn will be the current player's turn.
+                    // otherwise, current player takes the cards and loses his turn;
                     if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard)  // != declaredCard
-                        //If current player checked card and realised that it equals declared card on the contrary ^ he must take cards from board!
-                        currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length;// because if currentPlayerIndex == 0, next currentPlayerIndex = -1!
-
+                        currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length; //previous player
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
-
                     //TODO a method to check if the player has four cards of any value (make him drop them in this case)
                     //may be, the best way is to check only values, present in cardsOnBoard. use Player.dropCard(..);
                     cardsOnBoard.clear();
@@ -65,8 +63,11 @@ public class GameServer {
                         players[currentPlayerIndex].dropCard(card);
                 }
             }
-            currentPlayerIndex++;
+            checkPlayersStates();
+            do {
+                currentPlayerIndex++;
             currentPlayerIndex %= players.length;
+            } while (places[currentPlayerIndex] != 0); // ignoring players with no cards
         }
     }
 
@@ -95,7 +96,6 @@ public class GameServer {
             boolean playerHasCards = places[i] != 0 && players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
-                //TODO use checkPlayersStates in game proccess and actualize ignoring player without cards later in a game
             }
         }
         if (playersInGame == 1 || isDraw()) {
