@@ -23,11 +23,11 @@ public class GameServer {
     // board
     private List<int[]> cardsOnBoard;
     private Card.CardValue declaredCard;
-    private int countOfRemovedOneValueCards;
+    private int removedValuesCount;
     private int deckSize;
 
     private void StartGame() throws Player.DeckException {
-        Deal();
+        deal();
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
@@ -41,29 +41,27 @@ public class GameServer {
                 for (int card : result.cards)
                     players[currentPlayerIndex].dropCard(card);
             } else {
-
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
                     // go to the previous player, and the next turn will be the current player's turn.
                     // otherwise, current player takes the cards and loses his turn;
-                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard) { // != declaredCard
-                        do  {
-                        currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length; //previous player
+                    if (Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard) {
+                        do {
+                            currentPlayerIndex = (currentPlayerIndex + players.length - 1) % players.length; //previous player
                         }
-                            while (places[currentPlayerIndex] != 0);
-
+                        while (places[currentPlayerIndex] != 0);
                     }
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
-                    DropFourIdenticalValueCards();
-                    //may be, the best way is to check only values, present in cardsOnBoard. use Player.dropCard(..);
+                    dropSameValueCards();
                     cardsOnBoard.clear();
+                    onBoardCardsCount = 0;
                 } else {
                     cardsOnBoard.add(result.cards);
-                    onBoardCardsCount +=result.cards.length;
+                    onBoardCardsCount += result.cards.length;
                     for (int card : result.cards)
                         players[currentPlayerIndex].dropCard(card);
                 }
@@ -71,35 +69,30 @@ public class GameServer {
             checkPlayersStates();
             do {
                 currentPlayerIndex++;
-            currentPlayerIndex %= players.length;
+                currentPlayerIndex %= players.length;
             } while (places[currentPlayerIndex] != 0); // ignoring players with no cards
         }
     }
 
-    private void DropFourIdenticalValueCards() throws Player.DeckException  {
-
-       boolean [] CardValues = new boolean [13];
-       for (int [] c: cardsOnBoard) {
-           for (int one : c)   {
-               one = Card.getCardValue(one).ordinal();
-               if (!CardValues[one]) {// it means this card has not been tested
-                   CardValues[one] = true;
-                    int count = 0;
-                    count+=players[currentPlayerIndex].cardsOfValue(Card.CardValue.values()[one]);
-                    //This is sufficient because all that was on the table is already in the player's cards
-                    if (count==4)  {
+    private void dropSameValueCards() throws Player.DeckException {
+        boolean[] checkedValues = new boolean[13];
+        for (int[] cardLayer : cardsOnBoard) {
+            for (int card : cardLayer) {
+                Card.CardValue valueToCheck = Card.getCardValue(card);
+                if (valueToCheck != Card.CardValue.Ace && !checkedValues[valueToCheck.ordinal()]) {
+                    checkedValues[valueToCheck.ordinal()] = true;
+                    if (players[currentPlayerIndex].cardsOfValue(valueToCheck) == 4) {
                         for (Card.CardSuit suit : Card.CardSuit.values())
-                            players[currentPlayerIndex].dropCard(Card.getCardIndex(Card.getCardValue(one), suit));
-                        countOfRemovedOneValueCards++;
-
+                            players[currentPlayerIndex].dropCard(Card.getCardIndex(valueToCheck, suit));
+                        removedValuesCount++;
                     }
-               }
-           }
-       }
+                }
+            }
+        }
     }
 
 
-    private void Deal() throws Player.DeckException {
+    private void deal() throws Player.DeckException {
         int[] deck = new int[deckSize];
         for (int i = 0; i < deckSize; i++)
             deck[i] = i;
@@ -133,9 +126,7 @@ public class GameServer {
 
     private boolean isDraw() {
         //the draw is the situation, when only Aces are present in players' decks
-        if (countOfRemovedOneValueCards==12)
-            return true;
-        return false;
+        return removedValuesCount == 12;
     }
 
 }
