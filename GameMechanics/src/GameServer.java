@@ -51,10 +51,10 @@ public class GameServer {
                         //If current player checked card and realised that it equals declared card on the contrary ^ he must take cards from board!
                         currentPlayerIndex = (currentPlayerIndex+players.length-1)%players.length;// because if currentPlayerIndex == 0, next currentPlayerIndex = -1!
 
-
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
+
                     //TODO a method to check if the player has four cards of any value (make him drop them in this case)
                     //may be, the best way is to check only values, present in cardsOnBoard. use Player.dropCard(..);
                     cardsOnBoard.clear();
@@ -95,6 +95,7 @@ public class GameServer {
             boolean playerHasCards = places[i] != 0 && players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
+                //TODO use checkPlayersStates in game proccess and actualize ignoring player without cards later in a game
             }
         }
         if (playersInGame == 1 || isDraw()) {
