@@ -31,17 +31,17 @@ public class GameServer {
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
+        int onBoardCardsCount = 0;
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn();
                 declaredCard = result.declaredCardValue;
                 cardsOnBoard.add(result.cards);
+                onBoardCardsCount = result.cards.length;
                 for (int card : result.cards)
                     players[currentPlayerIndex].dropCard(card);
             } else {
-                int onBoardCardsCount = 0;
-                for (int[] a : cardsOnBoard)
-                    onBoardCardsCount += a.length;
+
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 if (result.isChecking) {
@@ -57,6 +57,7 @@ public class GameServer {
                     cardsOnBoard.clear();
                 } else {
                     cardsOnBoard.add(result.cards);
+                    onBoardCardsCount +=result.cards.length;
                     for (int card : result.cards)
                         players[currentPlayerIndex].dropCard(card);
                 }
