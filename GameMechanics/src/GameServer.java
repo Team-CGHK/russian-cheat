@@ -23,7 +23,7 @@ public class GameServer {
     // board
     private List<int[]> cardsOnBoard;
     private Card.CardValue declaredCard;
-
+    private int countOfRemovedOneValueCards;
     private int deckSize;
 
     private void StartGame() throws Player.DeckException {
@@ -85,6 +85,8 @@ public class GameServer {
                     if (count==4)  {
                         for (Card.CardSuit suit : Card.CardSuit.values())
                             players[currentPlayerIndex].dropCard(Card.getCardIndex(Card.getCardValue(one), suit));
+                        countOfRemovedOneValueCards++;
+
                     }
                }
            }
@@ -127,14 +129,9 @@ public class GameServer {
 
     private boolean isDraw() {
         //the draw is the situation, when only Aces are present in players' decks
-        for (Card.CardValue value : Card.CardValue.values()) {
-            if (value != Card.CardValue.Ace)
-                for (Player player : players)
-                    if (player.cardsOfValue(value) > 0)
-                        return false;
-        }
-        //TODO may be optimized: we can store card values that have been dropped and not check them
-        return true;
+        if (countOfRemovedOneValueCards==12)
+            return true;
+        return false;
     }
 
 }
