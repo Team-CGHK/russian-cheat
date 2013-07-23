@@ -22,6 +22,12 @@ public class GameServer {
     private GameState currentGameState;
     // board
     private List<int[]> cardsOnBoard;
+    private int onBoardCardsCount = 0; //is global for the getOnBoardCardsCount() method
+
+    public int getOnBoardCardsCount() {
+        return onBoardCardsCount;
+    }
+
     private Card.CardValue declaredCard;
     private int removedValuesCount;
     private int deckSize;
@@ -31,7 +37,6 @@ public class GameServer {
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
-        int onBoardCardsCount = 0;
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn();
@@ -40,9 +45,17 @@ public class GameServer {
                 onBoardCardsCount = result.cards.length;
                 for (int card : result.cards)
                     players[currentPlayerIndex].dropCard(card);
+                for (Player player : players) {
+                    player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length);
+                }
             } else {
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
+                for (Player player : players) {
+                    player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
+                            result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
+                            !result.isChecking ? result.cards.length : -1);
+                }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
                     // go to the previous player, and the next turn will be the current player's turn.

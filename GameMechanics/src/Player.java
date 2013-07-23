@@ -8,8 +8,12 @@ public abstract class Player {
     }
 
     abstract public FirstTurnResult firstTurn();
-
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount);
+
+    abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
+
+    abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
+    //TODO get check result from GameServer
 
     class FirstTurnResult {
         Card.CardValue declaredCardValue;
