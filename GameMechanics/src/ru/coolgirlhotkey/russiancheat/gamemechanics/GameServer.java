@@ -1,3 +1,5 @@
+package ru.coolgirlhotkey.russiancheat.gamemechanics;
+
 import java.util.List;
 import java.util.Random;
 

@@ -1,10 +1,12 @@
+package ru.coolgirlhotkey.russiancheat.gamemechanics;
+
 /**
  * Created by hotkey on 20.07.13.
  */
 
 public class Card {
 
-    // Card instances should never be created => the ctor is private
+    // ru.coolgirlhotkey.russiancheat.gamemechanics.Card instances should never be created => the ctor is private
     private Card() {
     }
 

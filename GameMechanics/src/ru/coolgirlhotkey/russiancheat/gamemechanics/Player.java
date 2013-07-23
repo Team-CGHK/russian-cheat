@@ -1,3 +1,5 @@
+package ru.coolgirlhotkey.russiancheat.gamemechanics;
+
 public abstract class Player {
     private boolean[] cards;
 
@@ -11,16 +13,15 @@ public abstract class Player {
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount);
 
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
-
     abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
-    //TODO get check result from GameServer
+    //TODO get check result from ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer
 
-    class FirstTurnResult {
+    public class FirstTurnResult {
         Card.CardValue declaredCardValue;
         int[] cards;
     }
 
-    class DependentTurnResult {
+    public class DependentTurnResult {
         boolean isChecking;
         int cardToCheck;
         int[] cards;
