@@ -13,7 +13,6 @@ public class Card {
     }
     public static enum CardValue {
         Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace;
-        //TODO decide, whether we need Jokers in a deck
     }
 
     public static final int MAX_DECK_SIZE = 52;
