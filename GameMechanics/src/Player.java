@@ -1,5 +1,5 @@
 public abstract class Player {
-    private boolean[] cards; // TODO byte instead of boolean (too much time if isChecking() == true)
+    private boolean[] cards;
 
     private String name;
 
