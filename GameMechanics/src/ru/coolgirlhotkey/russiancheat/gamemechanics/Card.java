@@ -6,12 +6,22 @@ package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
 public class Card {
 
-    // ru.coolgirlhotkey.russiancheat.gamemechanics.Card instances should never be created => the ctor is private
+    // Card instances should never be created => the ctor is private
     private Card() {
     }
 
     public static enum CardSuit {
-        Clubs, Diamonds, Hearts, Spades;
+        Clubs("♣"), Diamonds("♦"), Hearts("♥"), Spades("♠");
+
+        private String stringRepresentation;
+
+        public String toString() {
+            return stringRepresentation;
+        }
+
+        CardSuit(String stringRepresentation) {
+            this.stringRepresentation = stringRepresentation;
+        }
     }
     public static enum CardValue {
         Two("2"), Three("3"), Four("4"), Five("5"), Six("6"), Seven("7"), Eight("8"), Nine("9"), Ten("10"), Jack("J")
