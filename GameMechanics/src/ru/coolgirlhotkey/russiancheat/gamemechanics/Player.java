@@ -17,8 +17,8 @@ public abstract class Player {
     //TODO get check result from ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer
 
     public class FirstTurnResult {
-        Card.CardValue declaredCardValue;
-        int[] cards;
+        public Card.CardValue declaredCardValue;
+        public int[] cards;
     }
 
     public class DependentTurnResult {
