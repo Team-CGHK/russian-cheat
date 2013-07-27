@@ -60,7 +60,7 @@ public class ConsolePlayer extends Player {
             System.out.print(ex.getMessage());
             return null;
         }
-        // TODO fix exception handling. it's not fully fixed yet
+        // TODO fix exception handling. It's not fully fixed yet
     }
 
     //return value is null if and only if the cardStrings input is wrong

@@ -50,12 +50,19 @@ public class GameServer {
             return;
         //TODO throw an exception may be?
         deal();
-        //TODO deal with situation when a player gets four of same value cards on game start. we can declare it as a rule :D
+        //TODO fix the situation when a player gets four of same value cards on game start or declare the situation as a rule :D
+        //possible fix: if a player has 4 cards of the same value, he will give one of them to the next player
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
+                //TODO make a player unable to declared a card value, that have already been dropped: it will also be a lie.
+                //We have really had to store them all :D
+                //I see the safest way of doing it: a player is given a List<CardValue>, that he is allowed to declare
+                //and returns only an index in the list (the list can also be stored as a GameServer field, because
+                //it describes server's state). So a player won't be able to choose a forbidden CardValue.
+                //This can also be useful if we're going to make other rule sets.
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn();
                 declaredCard = result.declaredCardValue;
                 cardsOnBoard.add(result.cards);
