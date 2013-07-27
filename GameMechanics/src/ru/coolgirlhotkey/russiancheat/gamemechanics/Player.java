@@ -1,9 +1,13 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
 public abstract class Player {
+    public Player() {
+        cards = new boolean[Card.MAX_DECK_SIZE];
+    }
+
     private boolean[] cards;
 
-    private String name;
+    protected String name;
 
     public String getName() {
         return name;
@@ -17,14 +21,30 @@ public abstract class Player {
     //TODO get check result from ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer
 
     public class FirstTurnResult {
-        public Card.CardValue declaredCardValue;
-        public int[] cards;
+        Card.CardValue declaredCardValue;
+        int[] cards;
+
+        public FirstTurnResult(Card.CardValue declaredCardValue, int[] cards) {
+            this.declaredCardValue = declaredCardValue;
+            this.cards = cards;
+        }
     }
 
     public class DependentTurnResult {
         boolean isChecking;
         int cardToCheck;
         int[] cards;
+
+        public DependentTurnResult(boolean isChecking, int cardToCheck, int[] cards) {
+            this.isChecking = isChecking;
+            if (isChecking) {
+                this.cardToCheck = cardToCheck;
+                cards = null;
+            } else {
+                this.cards = cards;
+                this.cardToCheck = -1;
+            }
+        }
     }
 
     public class DeckException extends Exception {

@@ -1,5 +1,6 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -11,6 +12,16 @@ import java.util.Random;
  * To change this template use File | Settings | File Templates.
  */
 public class GameServer {
+
+    public GameServer(Player[] players) {
+        this.players = players;
+        places = new int[players.length];
+        currentGameState = GameState.hasNotStarted;
+        cardsOnBoard = new ArrayList<int[]>();
+        deckSize = Card.MAX_DECK_SIZE;
+        //TODO decide whether players creation must be encapsulated into GameServer code
+    }
+
     private Player[] players;
     private int[] places;
     private int playersInGame;
@@ -34,7 +45,10 @@ public class GameServer {
     private int removedValuesCount;
     private int deckSize;
 
-    private void StartGame() throws Player.DeckException {
+    public void startGame() throws Player.DeckException {
+        if (currentGameState != GameState.hasNotStarted)
+            return;
+        //TODO throw an exception may be?
         deal();
         currentGameState = GameState.hasStarted;
         Random r = new Random();
@@ -55,8 +69,8 @@ public class GameServer {
                         (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
-                            result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
-                            !result.isChecking ? result.cards.length : -1);
+                                               result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
+                                               !result.isChecking ? result.cards.length : -1);
                 }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
@@ -129,7 +143,7 @@ public class GameServer {
 
     private void checkPlayersStates() {
         for (int i = 0; i < players.length; i++) {
-            boolean playerHasCards = places[i] != 0 && players[i].hasCards();
+            boolean playerHasCards = places[i] != 0 || players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
             }
