@@ -22,6 +22,7 @@ public class ConsolePlayer extends Player {
 
     @Override
     public FirstTurnResult firstTurn() {
+        System.out.printf("%s's turn:\n", getName());
         System.out.println("There are no cards on board.");
         printPlayersCards();
         try { //catch (IOException)
@@ -43,7 +44,7 @@ public class ConsolePlayer extends Player {
                 userAnswerInput = br.readLine().toUpperCase();
                 //Regex to find cardValueStrings
                 List<String> cardStrings = new ArrayList<String>();
-                Matcher m = Pattern.compile("[(2-9)(10)JQKA]").matcher(userAnswerInput);
+                Matcher m = Pattern.compile("(10)|[(2-9)JQKA]").matcher(userAnswerInput);
                 while (m.find()) {
                     cardStrings.add(m.group());
                 }
@@ -104,11 +105,14 @@ public class ConsolePlayer extends Player {
     }
 
     private boolean isCorrectDeclaredCardInput(String input) {
-        return input.matches("[(2-9)(10)JQK]");
+        return input.matches("(10)|[(2-9)JQK]");
     }
 
     @Override
     public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount) {
+        System.out.printf("%s's turn:\n", getName());
+        System.out.printf("The declared card value is %s\n", declaredCard.name());
+        printPlayersCards();
         System.out.printf("There are %d cards on board, %d of them are actual\n", cardsOnBoardCount, actualCardsCount);
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -147,7 +151,7 @@ public class ConsolePlayer extends Player {
                 String userAnswerInput = br.readLine().toUpperCase();
                 //Regex to find cardValueStrings
                 List<String> cardStrings = new ArrayList<String>();
-                Matcher m = Pattern.compile("[(2-9)(10)JQKA]").matcher(userAnswerInput);
+                Matcher m = Pattern.compile("(10)|[(2-9)JQKA]").matcher(userAnswerInput);
                 while (m.find()) {
                     cardStrings.add(m.group());
                 }
@@ -174,9 +178,9 @@ public class ConsolePlayer extends Player {
     @Override
     public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
         if (isChecking)
-            System.out.printf("%s's notification: Player %d has checked a card #%d, it was %s", getName(), currentPlayerIndex, cardToCheck, Card.getCardValue(showdown).name());
+            System.out.printf("%s's notification: Player %d has checked a card #%d, it was %s\n", getName(), currentPlayerIndex, cardToCheck, Card.getCardValue(showdown).name());
         else
-            System.out.printf("%s's notification: Player %d has put %d cards", getName(), currentPlayerIndex, actualCardsCount);
+            System.out.printf("%s's notification: Player %d has put %d cards\n", getName(), currentPlayerIndex, actualCardsCount);
     }
 
 }

@@ -25,7 +25,7 @@ public class ConsoleGameTester {
             }
             Player[] players = new Player[playersCount];
             for (int i = 0; i < playersCount; i++) {
-                System.out.printf("Choose a name for player #%d: ", i);
+                System.out.printf("Enter a name for player #%d: ", i);
                 //TODO when simple AI player will be created, add an option to create AI player instead of ConsolePlayer
                 players[i] = new ConsolePlayer(br.readLine());
             }

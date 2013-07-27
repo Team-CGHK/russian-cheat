@@ -50,6 +50,7 @@ public class GameServer {
             return;
         //TODO throw an exception may be?
         deal();
+        //TODO deal with situation when a player gets four of same value cards on game start. we can declare it as a rule :D
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
@@ -150,6 +151,7 @@ public class GameServer {
         }
         if (playersInGame == 1 || isDraw()) {
             currentGameState = GameState.hasFinished;
+            //TODO notify the players about end game
         }
     }
 
