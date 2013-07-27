@@ -94,6 +94,8 @@ public class GameServer {
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
                     dropSameValueCards();
+                    //TODO notify players about a card value being dropped.
+                    //for example, make dropSameValueCards(); return a List<CardValue> with the values being dropped
                     cardsOnBoard.clear();
                     onBoardCardsCount = 0;
                 } else {
