@@ -33,16 +33,14 @@ public class GameServer {
     }
 
     private GameState currentGameState;
-    // board
-    private List<int[]> cardsOnBoard;
-    private int onBoardCardsCount = 0; //is global for the getOnBoardCardsCount() method
 
-    public int getOnBoardCardsCount() {
-        return onBoardCardsCount;
-    }
+    private List<Card.CardValue> valuesInGame;
+
+    private List<int[]> cardsOnBoard;
+    private int onBoardCardsCount;
 
     private Card.CardValue declaredCard;
-    private int removedValuesCount;
+
     private int deckSize;
 
     public void startGame() throws Player.DeckException {
@@ -50,6 +48,9 @@ public class GameServer {
             return;
         //TODO throw an exception may be?
         deal();
+        valuesInGame = new ArrayList<Card.CardValue>();
+        for (Card.CardValue value : Card.CardValue.values())
+            valuesInGame.add(value);
         for (int i = 0; i < players.length; i++) {
             List<Card.CardValue> droppedValues = dropSameValueCards(players[i]);
             if (droppedValues.size() > 0)
@@ -62,14 +63,8 @@ public class GameServer {
         currentPlayerIndex = r.nextInt(players.length);
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
-                //TODO make a player unable to declared a card value, that have already been dropped: it will also be a lie.
-                //We have really had to store them all :D
-                //I see the safest way of doing it: a player is given a List<CardValue>, that he is allowed to declare
-                //and returns only an index in the list (the list can also be stored as a GameServer field, because
-                //it describes server's state). So a player won't be able to choose a forbidden CardValue.
-                //This can also be useful if we're going to make other rule sets.
-                Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn();
-                declaredCard = result.declaredCardValue;
+                Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn(valuesInGame.subList(0, valuesInGame.size() - 1));
+                declaredCard = valuesInGame.get(result.declaredCardValueIndex % valuesInGame.size());
                 cardsOnBoard.add(result.cards);
                 onBoardCardsCount = result.cards.length;
                 for (int card : result.cards)
@@ -128,7 +123,7 @@ public class GameServer {
                     droppedValues.add(valueToCheck);
                     for (Card.CardSuit suit : Card.CardSuit.values())
                         player.dropCard(Card.getCardIndex(valueToCheck, suit));
-                    removedValuesCount++;
+                    valuesInGame.remove(valueToCheck);
                 }
             }
         }
@@ -147,7 +142,7 @@ public class GameServer {
                         droppedValues.add(valueToCheck);
                         for (Card.CardSuit suit : Card.CardSuit.values())
                             player.dropCard(Card.getCardIndex(valueToCheck, suit));
-                        removedValuesCount++;
+                        valuesInGame.remove(valueToCheck);
                     }
                 }
             }
@@ -191,7 +186,7 @@ public class GameServer {
 
     private boolean isDraw() {
         //the draw is the situation, when only Aces are present in players' decks
-        return removedValuesCount == 12;
+        return valuesInGame.size() == 1;
     }
 
 }

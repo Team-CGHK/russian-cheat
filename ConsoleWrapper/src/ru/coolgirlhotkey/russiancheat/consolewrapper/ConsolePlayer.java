@@ -21,22 +21,26 @@ public class ConsolePlayer extends Player {
     }
 
     @Override
-    public FirstTurnResult firstTurn() {
+    public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame) {
         System.out.printf("%s's turn:\n", getName());
         System.out.println("There are no cards on board.");
         printPlayersCards();
         try { //catch (IOException)
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String userAnswerInput;
+            String availableCardsOutput = "";
+            for (int i = 0; i < valuesInGame.size(); i++)
+                availableCardsOutput += valuesInGame.get(i) != Card.CardValue.Ace ? (valuesInGame.get(i).toString()
+                                                                                     + (i < valuesInGame.size() - 1 ? " " : "")) : "";
             for (; ; ) {
-                System.out.println("Choose a card value to declare: [2..K]");
+                System.out.printf("Choose a card value to declare: [%s]\n", availableCardsOutput);
                 userAnswerInput = br.readLine().toUpperCase();
-                if (isCorrectDeclaredCardInput(userAnswerInput))
+                if (isCorrectDeclaredCardInput(userAnswerInput, valuesInGame))
                     break;
                 else
                     System.out.println("Wrong input, follow the instruction!");
             }
-            Card.CardValue declaredCardValue = Card.parseCardValue(userAnswerInput);
+            int declaredCardValueIndex = valuesInGame.indexOf(Card.parseCardValue(userAnswerInput));
 
             int[] cardsToPutIndexes;
             for (; ; ) {
@@ -55,7 +59,7 @@ public class ConsolePlayer extends Player {
                 else
                     System.out.println("Wrong input, follow the instruction!");
             }
-            return new FirstTurnResult(declaredCardValue, cardsToPutIndexes);
+            return new FirstTurnResult(declaredCardValueIndex, cardsToPutIndexes);
         } catch (IOException ex) {
             System.out.print(ex.getMessage());
             return null;
@@ -104,8 +108,12 @@ public class ConsolePlayer extends Player {
         }
     }
 
-    private boolean isCorrectDeclaredCardInput(String input) {
-        return input.matches("(10)|[(2-9)JQK]");
+    private boolean isCorrectDeclaredCardInput(String input, List<Card.CardValue> availableValues) {
+        String pattern = "^";
+        for (int i = 0; i < availableValues.size(); i++)
+            pattern += "(" + availableValues.get(i).toString() + ")" + (i < availableValues.size() - 1 ? "|" : "");
+        pattern += "$";
+        return input.matches(pattern);
     }
 
     @Override

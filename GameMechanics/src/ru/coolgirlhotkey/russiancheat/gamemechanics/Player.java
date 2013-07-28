@@ -15,7 +15,8 @@ public abstract class Player {
         return name;
     }
 
-    abstract public FirstTurnResult firstTurn();
+    abstract public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame);
+
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount);
 
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
@@ -24,11 +25,11 @@ public abstract class Player {
     abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
 
     public class FirstTurnResult {
-        Card.CardValue declaredCardValue;
+        int declaredCardValueIndex;
         int[] cards;
 
-        public FirstTurnResult(Card.CardValue declaredCardValue, int[] cards) {
-            this.declaredCardValue = declaredCardValue;
+        public FirstTurnResult(int declaredCardValueIndex, int[] cards) {
+            this.declaredCardValueIndex = declaredCardValueIndex;
             this.cards = cards;
         }
     }
