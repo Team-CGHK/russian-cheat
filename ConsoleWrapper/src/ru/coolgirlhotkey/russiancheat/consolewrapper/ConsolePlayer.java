@@ -133,6 +133,10 @@ public class ConsolePlayer extends Player {
                     break;
                 }
                 if (userAnswerInput.contains("P")) {
+                    if (!hasCards()) {
+                        System.out.println("Sorry, you have no cards to put.");
+                        continue;
+                    }
                     isChecking = false;
                     break;
                 }

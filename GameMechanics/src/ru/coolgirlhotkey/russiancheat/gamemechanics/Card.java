@@ -13,7 +13,7 @@ public class Card {
     public static enum CardSuit {
         Clubs("♣"), Diamonds("♦"), Hearts("♥"), Spades("♠");
 
-        private String stringRepresentation;
+        private final String stringRepresentation;
 
         public String toString() {
             return stringRepresentation;
@@ -23,11 +23,12 @@ public class Card {
             this.stringRepresentation = stringRepresentation;
         }
     }
-    public static enum CardValue {
-        Two("2"), Three("3"), Four("4"), Five("5"), Six("6"), Seven("7"), Eight("8"), Nine("9"), Ten("10"), Jack("J")
-        , Queen("Q"), King("K"), Ace("A");
 
-        private String stringRepresentation;
+    public static enum CardValue {
+        Two("2"), Three("3"), Four("4"), Five("5"), Six("6"), Seven("7"), Eight("8"), Nine("9"), Ten("10"), Jack("J"), Queen("Q"), King("K"), Ace("A");
+
+        private final String stringRepresentation;
+
         public String toString() {
             return stringRepresentation;
         }

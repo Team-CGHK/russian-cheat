@@ -40,7 +40,7 @@ public class AIPlayer extends Player {
             if (maxFactor - valueFactor[i] < MAX_DIFF_TO_CONSIDER_VALUE)
                 considerableValuesIndexes.add(i);
         }
-        // randomly choose one of the considerable card values to declare randomly
+        // choose randomly one of the considerable card values to declare
         int declaredValueIndex = considerableValuesIndexes.get(rng.nextInt(considerableValuesIndexes.size()));
         //TODO implement cards to put choice
         throw new NotImplementedException();

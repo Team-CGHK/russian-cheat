@@ -1,6 +1,7 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -48,14 +49,14 @@ public class GameServer {
             return;
         //TODO throw an exception may be?
         deal();
+        playersInGame = players.length;
         valuesInGame = new ArrayList<Card.CardValue>();
-        for (Card.CardValue value : Card.CardValue.values())
-            valuesInGame.add(value);
+        Collections.addAll(valuesInGame, Card.CardValue.values());
         for (int i = 0; i < players.length; i++) {
             List<Card.CardValue> droppedValues = dropSameValueCards(players[i]);
             if (droppedValues.size() > 0)
                 for (Player p : players)
-                    p.notifyDroppedCardValues(currentPlayerIndex, droppedValues);
+                    p.notifyDroppedCardValues(i, droppedValues);
         }
         //for now 4 same value cards will just be dropped. looks like IRL we'd do the same
         currentGameState = GameState.hasStarted;
@@ -63,8 +64,12 @@ public class GameServer {
         currentPlayerIndex = r.nextInt(players.length);
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
-                Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn(valuesInGame.subList(0, valuesInGame.size() - 1));
-                declaredCard = valuesInGame.get(result.declaredCardValueIndex % valuesInGame.size());
+                List<Card.CardValue> declarableValues = new ArrayList<Card.CardValue>();
+                for (Card.CardValue value : valuesInGame)
+                    if (value != Card.CardValue.Ace)
+                        declarableValues.add(value);
+                Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn(declarableValues);
+                declaredCard = declarableValues.get(result.declaredCardValueIndex % declarableValues.size());
                 cardsOnBoard.add(result.cards);
                 onBoardCardsCount = result.cards.length;
                 for (int card : result.cards)
@@ -99,6 +104,7 @@ public class GameServer {
                             p.notifyDroppedCardValues(currentPlayerIndex, droppedValues);
                     cardsOnBoard.clear();
                     onBoardCardsCount = 0;
+                    checkPlayersStates();
                 } else {
                     cardsOnBoard.add(result.cards);
                     onBoardCardsCount += result.cards.length;
@@ -106,7 +112,6 @@ public class GameServer {
                         players[currentPlayerIndex].dropCard(card);
                 }
             }
-            checkPlayersStates();
             do {
                 currentPlayerIndex++;
                 currentPlayerIndex %= players.length;
