@@ -188,7 +188,7 @@ public class ConsolePlayer extends Player {
         String droppedValuesStrings = "";
         for (int i = 0; i < droppedValues.size(); i++)
             droppedValuesStrings += droppedValues.get(i).name() + (i < droppedValues.size() - 1 ? ", " : "");
-        System.out.printf("%s's notification: Player %d has dropped the following card values: %s", getName(), playerIndex, droppedValuesStrings);
+        System.out.printf("%s's notification: Player %d has dropped the following card values: %s\n", getName(), playerIndex, droppedValuesStrings);
     }
 
 }
