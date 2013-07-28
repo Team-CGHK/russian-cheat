@@ -183,4 +183,12 @@ public class ConsolePlayer extends Player {
             System.out.printf("%s's notification: Player %d has put %d cards\n", getName(), currentPlayerIndex, actualCardsCount);
     }
 
+    @Override
+    public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues) {
+        String droppedValuesStrings = "";
+        for (int i = 0; i < droppedValues.size(); i++)
+            droppedValuesStrings += droppedValues.get(i).name() + (i < droppedValues.size() - 1 ? ", " : "");
+        System.out.printf("%s's notification: Player %d has dropped the following card values: %s", getName(), playerIndex, droppedValuesStrings);
+    }
+
 }

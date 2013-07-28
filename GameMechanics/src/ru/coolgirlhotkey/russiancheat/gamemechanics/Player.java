@@ -1,5 +1,7 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
+import java.util.List;
+
 public abstract class Player {
     public Player() {
         cards = new boolean[Card.MAX_DECK_SIZE];
@@ -19,6 +21,7 @@ public abstract class Player {
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
     abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
     //TODO get check result from ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer
+    abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
 
     public class FirstTurnResult {
         Card.CardValue declaredCardValue;

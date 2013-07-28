@@ -50,8 +50,13 @@ public class GameServer {
             return;
         //TODO throw an exception may be?
         deal();
-        //TODO fix the situation when a player gets four of same value cards on game start or declare the situation as a rule :D
-        //possible fix: if a player has 4 cards of the same value, he will give one of them to the next player
+        for (int i = 0; i < players.length; i++) {
+            List<Card.CardValue> droppedValues = dropSameValueCards(players[i]);
+            if (droppedValues.size() > 0)
+                for (Player p : players)
+                    p.notifyDroppedCardValues(currentPlayerIndex, droppedValues);
+        }
+        //for now 4 same value cards will just be dropped. looks like IRL we'd do the same
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
@@ -93,8 +98,10 @@ public class GameServer {
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
-                    dropSameValueCards();
-                    //TODO notify players about a card value being dropped.
+                    List<Card.CardValue> droppedValues = dropSameValueCards(players[currentPlayerIndex]);
+                    if (droppedValues.size() > 0)
+                        for (Player p : players)
+                            p.notifyDroppedCardValues(currentPlayerIndex, droppedValues);
                     //for example, make dropSameValueCards(); return a List<CardValue> with the values being dropped
                     cardsOnBoard.clear();
                     onBoardCardsCount = 0;
@@ -113,21 +120,24 @@ public class GameServer {
         }
     }
 
-    private void dropSameValueCards() throws Player.DeckException {
-        boolean[] checkedValues = new boolean[13];
+    private List<Card.CardValue> dropSameValueCards(Player player) throws Player.DeckException {
+        List<Card.CardValue> droppedValues = new ArrayList<Card.CardValue>();
+        boolean[] checkedValues = new boolean[Card.CardValue.values().length];
         for (int[] cardLayer : cardsOnBoard) {
             for (int card : cardLayer) {
                 Card.CardValue valueToCheck = Card.getCardValue(card);
                 if (valueToCheck != Card.CardValue.Ace && !checkedValues[valueToCheck.ordinal()]) {
                     checkedValues[valueToCheck.ordinal()] = true;
-                    if (players[currentPlayerIndex].cardsOfValue(valueToCheck) == 4) {
+                    if (player.cardsOfValue(valueToCheck) == 4) {
+                        droppedValues.add(valueToCheck);
                         for (Card.CardSuit suit : Card.CardSuit.values())
-                            players[currentPlayerIndex].dropCard(Card.getCardIndex(valueToCheck, suit));
+                            player.dropCard(Card.getCardIndex(valueToCheck, suit));
                         removedValuesCount++;
                     }
                 }
             }
         }
+        return droppedValues;
     }
 
 
