@@ -98,11 +98,10 @@ public class GameServer {
                     for (int[] cardLayer : cardsOnBoard)
                         for (int card : cardLayer)
                             players[currentPlayerIndex].takeCard(card);
-                    List<Card.CardValue> droppedValues = dropSameValueCards(players[currentPlayerIndex]);
+                    List<Card.CardValue> droppedValues = dropSameOnBoardValueCards(players[currentPlayerIndex]);
                     if (droppedValues.size() > 0)
                         for (Player p : players)
                             p.notifyDroppedCardValues(currentPlayerIndex, droppedValues);
-                    //for example, make dropSameValueCards(); return a List<CardValue> with the values being dropped
                     cardsOnBoard.clear();
                     onBoardCardsCount = 0;
                 } else {
@@ -121,6 +120,22 @@ public class GameServer {
     }
 
     private List<Card.CardValue> dropSameValueCards(Player player) throws Player.DeckException {
+        List<Card.CardValue> droppedValues = new ArrayList<Card.CardValue>();
+        for (int card = 0; card < Card.CardValue.values().length; card++) {
+            Card.CardValue valueToCheck = Card.getCardValue(card);
+            if (valueToCheck != Card.CardValue.Ace) {
+                if (player.cardsOfValue(valueToCheck) == 4) {
+                    droppedValues.add(valueToCheck);
+                    for (Card.CardSuit suit : Card.CardSuit.values())
+                        player.dropCard(Card.getCardIndex(valueToCheck, suit));
+                    removedValuesCount++;
+                }
+            }
+        }
+        return droppedValues;
+    }
+
+    private List<Card.CardValue> dropSameOnBoardValueCards(Player player) throws Player.DeckException {
         List<Card.CardValue> droppedValues = new ArrayList<Card.CardValue>();
         boolean[] checkedValues = new boolean[Card.CardValue.values().length];
         for (int[] cardLayer : cardsOnBoard) {
