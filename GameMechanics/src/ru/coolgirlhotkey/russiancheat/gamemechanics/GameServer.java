@@ -66,7 +66,6 @@ public class GameServer {
             if (cardsOnBoard.size() == 0) {
                 List<Card.CardValue> declarableValues = new ArrayList<Card.CardValue>();
                 for (Card.CardValue value : valuesInGame)
-                    if (value != Card.CardValue.Ace)
                         declarableValues.add(value);
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn(declarableValues);
                 declaredCard = declarableValues.get(result.declaredCardValueIndex % declarableValues.size());
@@ -79,7 +78,7 @@ public class GameServer {
                 }
             } else {
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
-                        (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length);
+                        (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length, valuesInGame.subList(0,valuesInGame.size()));
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,

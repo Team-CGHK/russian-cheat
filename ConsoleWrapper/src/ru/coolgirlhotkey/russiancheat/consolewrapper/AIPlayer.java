@@ -27,6 +27,10 @@ public class AIPlayer extends Player {
     final double LOW_CARD_FACTOR = 0.1;
     final double HIGH_CARD_FACTOR = 0.9;
     final double LIE_WEIGHT = 0.45;
+    final double LOW_CHECK_FACTOR = 0.3;
+    final double EACH_ACTUAL_CARD_CHECK_WEIGHT = 0.05;
+    final double EACH_OUR_DECLARED_CARD_CHECK_WEIGHT = 0.15;
+    final double EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT = 0.01;
     double aggressivenessOfCardsNumber;
     //
 
@@ -112,22 +116,31 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount) {
-
+    public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount,
+                                             int actualCardsCount, List<Card.CardValue> valuesInGame) {
+        Random rnd = new Random();
+        double checkThreshold = LOW_CHECK_FACTOR + EACH_ACTUAL_CARD_CHECK_WEIGHT * actualCardsCount +
+                EACH_OUR_DECLARED_CARD_CHECK_WEIGHT * cardsOfValue(declaredCard) - EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT *
+                (Card.CardValue.values().length - valuesInGame.size());
+        double checkFactor = rnd.nextDouble();
+        if (checkFactor < checkThreshold)  //check
+            return new DependentTurnResult(true, rnd.nextInt(actualCardsCount), null);
+        return new DependentTurnResult(false, -1,
+                chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
     }
 
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
-        throw new NotImplementedException();
+
     }
 
     @Override
     public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
-        throw new NotImplementedException();
+
     }
 
     @Override
     public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues) {
-        throw new NotImplementedException();
+
     }
 }

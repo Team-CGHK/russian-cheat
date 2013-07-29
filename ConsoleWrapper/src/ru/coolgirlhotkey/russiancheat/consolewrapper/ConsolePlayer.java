@@ -120,7 +120,7 @@ public class ConsolePlayer extends Player {
     }
 
     @Override
-    public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount) {
+    public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount, List<Card.CardValue> valuesInGame) {
         System.out.printf("%s's turn: (press Enter)\n", getName());
         try {
         System.in.read();
