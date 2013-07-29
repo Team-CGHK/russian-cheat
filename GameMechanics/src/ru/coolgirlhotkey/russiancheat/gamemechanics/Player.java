@@ -11,6 +11,8 @@ public abstract class Player {
 
     protected String name;
 
+    protected GameServer.PlayerInfo[] currentGamePlayersInfo;
+
     public String getName() {
         return name;
     }
@@ -21,8 +23,13 @@ public abstract class Player {
 
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
     abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
-    //TODO get check result from ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer
     abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
+
+    abstract public void notifyPlayerTakingCards(int playerIndex, int cardsCount);
+
+    abstract public void notifyThisPlayerTakingCards(List<int[]> cards);
+
+    abstract public void notifyEndGame(int[] places);
 
     public class FirstTurnResult {
         int declaredCardValueIndex;

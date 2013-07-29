@@ -11,34 +11,37 @@ import java.util.Random;
  * Created by hotkey on 28.07.13.
  */
 public class AIPlayer extends Player {
+    private static int instancesCount = 0;
     //AI logics constants
     final double CARD_IN_MY_DECK_WEIGHT = 0.1;
-    final double MAX_DIFF_TO_CONSIDER = 0.15;
+    final double MAX_DIFF_TO_CONSIDER = 0.09;
     final double MAX_DIFF_TO_CONSIDER_CARD = 0.05;
-    final double[] CARDS_TO_PUT_NUMBER_WEIGHT = new double[]{0, 0.33, 0.66, 0.93, 1.05, 1.14, 1.17};
+    final double[] CARDS_TO_PUT_NUMBER_WEIGHT = new double[]{0, 0.4, 0.8, 0.93, 1.05, 1.14, 1.17};
     final double NO_CARDS_OF_VALUE_TRUTH_FACTOR = 0.90;
     final double CARD_IN_MY_DECK_TRUTH_WEIGHT = 0.07;
     final double EACH_CARD_TO_PUT_TRUTH_WEIGHT = 0.06;
     final double EACH_CARD_ON_BOARD_TRUTH_WEIGHT = 0.01;
-    final double DEFAULT_ACE_WEIGHT = 0.4;
+    final double NON_ACE_THRESHOLD = 0.4;
     final double EACH_CARD_DECREASE_ACE_WEIGHT = 0.01;
     final double EACH_ACE_IN_DECK_WEIGHT = 0.1;
     final double DEFAULT_CARD_FACTOR = 0.5;
     final double LOW_CARD_FACTOR = 0.1;
     final double HIGH_CARD_FACTOR = 0.9;
-    final double LIE_WEIGHT = 0.45;
-    final double LOW_CHECK_FACTOR = 0.3;
-    final double EACH_ACTUAL_CARD_CHECK_WEIGHT = 0.05;
-    final double EACH_OUR_DECLARED_CARD_CHECK_WEIGHT = 0.15;
+    final double LIE_THRESHOLD = 0.65;
+    final double DEFAULT_CHECK_THRESHOLD = 0.3;
+    final double EACH_ACTUAL_CARD_CHECK_WEIGHT = 0.07;
+    final double EACH_KNOWN_DECLARED_CARD_CHECK_WEIGHT = 0.10;
     final double EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT = 0.01;
     double aggressivenessOfCardsNumber;
+
+    int hadCardsOfDeclaredValue;
     //
 
     AIPlayer() {
         super();
-        name = "AI";
+        name = "AI" + (++instancesCount);
         Random rng = new Random();
-        aggressivenessOfCardsNumber = rng.nextDouble() * 1.2;
+        aggressivenessOfCardsNumber = 0.8 + rng.nextDouble() * 0.4;
     }
 
     @Override
@@ -74,35 +77,35 @@ public class AIPlayer extends Player {
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
         int cardsToPutNumber = 1;
         for (int i = 0; i < CARDS_TO_PUT_NUMBER_WEIGHT.length; i++)
-            if (CARDS_TO_PUT_NUMBER_WEIGHT[i] > cardsToPutNumberFactor && (i == CARDS_TO_PUT_NUMBER_WEIGHT.length - 1 || cardsToPutNumberFactor < CARDS_TO_PUT_NUMBER_WEIGHT[i + 1])) {
-                cardsToPutNumber = Math.min(i+1, cardsCount());
+            if (cardsToPutNumberFactor > CARDS_TO_PUT_NUMBER_WEIGHT[i])
+                cardsToPutNumber = i + 1;
+            else
                 break;
-            }
+        cardsToPutNumber = Math.min(cardsToPutNumber, cardsCount());
         int[] cardsToPut = new int[cardsToPutNumber];
-        for (int i = 0; i<cardsToPut.length; i++)
+        for (int i = 0; i < cardsToPut.length; i++)
             cardsToPut[i] = -1;
         for (int i = 0; i < cardsToPutNumber; i++) {
             double[] cardFactor = new double[cards.length];
             for (int j = 0; j < cardFactor.length; j++) {
                 cardFactor[j] = hasCard(j) ? DEFAULT_CARD_FACTOR : 0;
-            }
-            for (int j = 0; j<i; j++) {
+            } //exclude cards in cardsToPut from being chosen again
+            for (int j = 0; j < i; j++) {
                 cardFactor[cardsToPut[j]] = 0;
             }
-            double truthFactor = rng.nextDouble();
-            truthFactor *= NO_CARDS_OF_VALUE_TRUTH_FACTOR + cardsOfValue(valuesInGame.get(declaredValueIndex)) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
-            truthFactor += (cardsToPutNumber - 1) * EACH_CARD_TO_PUT_TRUTH_WEIGHT;
+            double lieFactor = rng.nextDouble();
+            lieFactor *= NO_CARDS_OF_VALUE_TRUTH_FACTOR + cardsOfValue(valuesInGame.get(declaredValueIndex)) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
             //TODO cardsOnBoard factor
             for (Card.CardSuit suit : Card.CardSuit.values())
-                if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] > 0.005)
-                    cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = truthFactor < LIE_WEIGHT ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
-            if (truthFactor < LIE_WEIGHT) {
+                if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
+                    cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = lieFactor < LIE_THRESHOLD ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
+            if (lieFactor < LIE_THRESHOLD) {
                 double aceChoiceFactor = rng.nextDouble();
                 aceChoiceFactor += EACH_ACE_IN_DECK_WEIGHT * cardsOfValue(Card.CardValue.Ace);
                 aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount();
                 for (Card.CardSuit suit : Card.CardSuit.values())
-                    if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] > 0.005)
-                        cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] = aceChoiceFactor > DEFAULT_ACE_WEIGHT ? HIGH_CARD_FACTOR : LOW_CARD_FACTOR;
+                    if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] != 0)
+                        cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] = aceChoiceFactor > NON_ACE_THRESHOLD ? HIGH_CARD_FACTOR : LOW_CARD_FACTOR;
             }
             double maxCardFactor = 0;
             for (int j = 0; j < cardFactor.length; j++)
@@ -121,20 +124,22 @@ public class AIPlayer extends Player {
 
     @Override
     public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount,
-                                             int actualCardsCount, List<Card.CardValue> valuesInGame)   {
-               Random rnd = new Random();
-        double checkTreshold = LOW_CHECK_FACTOR + EACH_ACTUAL_CARD_CHECK_WEIGHT*actualCardsCount+
-                EACH_OUR_DECLARED_CARD_CHECK_WEIGHT*cardsOfValue(declaredCard)-EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT*
-                (Card.CardValue.values().length-valuesInGame.size());
+                                             int actualCardsCount, List<Card.CardValue> valuesInGame) {
+        Random rnd = new Random();
+        double checkThreshold = DEFAULT_CHECK_THRESHOLD
+                                + EACH_ACTUAL_CARD_CHECK_WEIGHT * actualCardsCount
+                                + EACH_KNOWN_DECLARED_CARD_CHECK_WEIGHT * (hadCardsOfDeclaredValue - cardsOfValue(declaredCard))
+                                - EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT * (Card.CardValue.values().length - valuesInGame.size());
         double checkFactor = rnd.nextDouble();
-        if (checkFactor<checkTreshold || !hasCards())  //check
-           return new DependentTurnResult(true,rnd.nextInt(actualCardsCount),null);
+        if (checkFactor < checkThreshold || !hasCards())  //check
+            return new DependentTurnResult(true, rnd.nextInt(actualCardsCount), null);
         else
             return new DependentTurnResult(false, -1, chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
     }
 
     @Override
-    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
+    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount) {
+        hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
     }
 
     @Override
@@ -143,5 +148,20 @@ public class AIPlayer extends Player {
 
     @Override
     public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues) {
+    }
+
+    @Override
+    public void notifyPlayerTakingCards(int playerIndex, int cardsCount) {
+
+    }
+
+    @Override
+    public void notifyThisPlayerTakingCards(List<int[]> cards) {
+
+    }
+
+    @Override
+    public void notifyEndGame(int[] places) {
+
     }
 }

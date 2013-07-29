@@ -3,6 +3,7 @@ package ru.coolgirlhotkey.russiancheat.consolewrapper; /**
  */
 
 import ru.coolgirlhotkey.russiancheat.gamemechanics.Card;
+import ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer;
 import ru.coolgirlhotkey.russiancheat.gamemechanics.Player;
 
 import java.io.BufferedReader;
@@ -193,15 +194,15 @@ public class ConsolePlayer extends Player {
 
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
-        System.out.printf("%s's notification: Player %d has declared %s and put %d cards\n", getName(), currentPlayerIndex, declaredCard.name(), actualCardsCount);
+        System.out.printf("%s's notification: %s has declared %s and put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), declaredCard.name(), actualCardsCount);
     }
 
     @Override
     public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
         if (isChecking)
-            System.out.printf("%s's notification: Player %d has checked a card #%d, it was %s\n", getName(), currentPlayerIndex, cardToCheck, Card.getCardValue(showdown).name());
+            System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), cardToCheck, Card.getCardValue(showdown).name());
         else
-            System.out.printf("%s's notification: Player %d has put %d cards\n", getName(), currentPlayerIndex, actualCardsCount);
+            System.out.printf("%s's notification: %s has put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), actualCardsCount);
     }
 
     @Override
@@ -209,7 +210,38 @@ public class ConsolePlayer extends Player {
         String droppedValuesStrings = "";
         for (int i = 0; i < droppedValues.size(); i++)
             droppedValuesStrings += droppedValues.get(i).name() + (i < droppedValues.size() - 1 ? ", " : "");
-        System.out.printf("%s's notification: Player %d has dropped the following card values: %s\n", getName(), playerIndex, droppedValuesStrings);
+        System.out.printf("%s's notification: %s has dropped the following card values: %s\n", getName(), currentGamePlayersInfo[playerIndex].getName(), droppedValuesStrings);
+    }
+
+    @Override
+    public void notifyPlayerTakingCards(int playerIndex, int cardsCount) {
+        System.out.printf("%s's notification: %s has taken %d cards from the board\n", getName(), currentGamePlayersInfo[playerIndex].getName(), cardsCount);
+    }
+
+    @Override
+    public void notifyThisPlayerTakingCards(List<int[]> cards) {
+        System.out.printf("%s's notification: you have taken the following cards from the board:\n", getName());
+        for (int[] cardLayer : cards) {
+            for (int card : cardLayer) {
+                System.out.printf("%s%s ", Card.getCardValue(card), Card.getCardSuit(card));
+            }
+            System.out.println();
+        }
+    }
+
+    @Override
+    public void notifyEndGame(int[] places) {
+        System.out.printf("%s's notification: the game has ended, the results:\n", getName());
+        GameServer.PlayerInfo[] infosSorted = new GameServer.PlayerInfo[places.length];
+        for (int i = 0; i < places.length; i++)
+            if (places[i] != 0)
+                infosSorted[places[i] - 1] = currentGamePlayersInfo[i];
+        for (int i = 0; i < infosSorted.length && infosSorted[i] != null; i++)
+            System.out.printf("%d. %s\n", i + 1, infosSorted[i].getName());
+        for (int i = 0; i < places.length; i++)
+            if (places[i] == 0)
+                System.out.printf("Loser: %s\n", currentGamePlayersInfo[i].getName());
+
     }
 
 }
