@@ -7,7 +7,7 @@ public abstract class Player {
         cards = new boolean[Card.MAX_DECK_SIZE];
     }
 
-    private boolean[] cards;
+    protected boolean[] cards;
 
     protected String name;
 
@@ -74,6 +74,13 @@ public abstract class Player {
             cards[card] = false;
         else
             throw new DeckException("The player's deck doesn't contain the card to remove", card);
+    }
+
+    public int cardsCount() {
+        int result = 0;
+        for (int i = 0; i < cards.length; i++)
+            if (cards[i]) result++;
+        return result;
     }
 
     public boolean hasCards() {
