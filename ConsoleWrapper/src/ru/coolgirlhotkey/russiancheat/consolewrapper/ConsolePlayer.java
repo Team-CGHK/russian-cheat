@@ -22,10 +22,11 @@ public class ConsolePlayer extends Player {
 
     @Override
     public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame) {
-        System.out.printf("%s's turn:\n", getName());
+        System.out.printf("%s's turn: (press Enter)\n", getName());
+        try { //catch (IOException)
+        System.in.read();
         System.out.println("There are no cards on board.");
         printPlayersCards();
-        try { //catch (IOException)
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String userAnswerInput;
             String availableCardsOutput = "";
@@ -59,6 +60,8 @@ public class ConsolePlayer extends Player {
                 else
                     System.out.println("Wrong input, follow the instruction!");
             }
+            for (int i = 0; i<20; i++)
+                System.out.println();
             return new FirstTurnResult(declaredCardValueIndex, cardsToPutIndexes);
         } catch (IOException ex) {
             System.out.print(ex.getMessage());
@@ -118,11 +121,13 @@ public class ConsolePlayer extends Player {
 
     @Override
     public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount) {
-        System.out.printf("%s's turn:\n", getName());
+        System.out.printf("%s's turn: (press Enter)\n", getName());
+        try {
+        System.in.read();
         System.out.printf("The declared card value is %s\n", declaredCard.name());
         printPlayersCards();
         System.out.printf("There are %d cards on board, %d of them are actual\n", cardsOnBoardCount, actualCardsCount);
-        try {
+
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             boolean isChecking;
             for (; ; ) {
@@ -154,6 +159,8 @@ public class ConsolePlayer extends Player {
                     }
                     System.out.println("Wrong input, follow the instruction!");
                 }
+                for (int i = 0; i<20; i++)
+                    System.out.println();
                 return new DependentTurnResult(true, cardToCheck - 1, null);
             }
             //else
@@ -174,6 +181,8 @@ public class ConsolePlayer extends Player {
                 else
                     System.out.println("Wrong input, follow the instruction!");
             }
+            for (int i = 0; i<20; i++)
+                System.out.println();
             return new DependentTurnResult(false, -1, cardsToPutIndexes);
         } catch (IOException ex) {
             System.out.print(ex.getMessage());
