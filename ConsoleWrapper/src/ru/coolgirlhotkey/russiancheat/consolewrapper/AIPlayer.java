@@ -70,7 +70,7 @@ public class AIPlayer extends Player {
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
         int cardsToPutNumber = 1;
         for (int i = 0; i < CARDS_TO_PUT_NUMBER_WEIGHT.length; i++)
-            if (CARDS_TO_PUT_NUMBER_WEIGHT[i] < cardsToPutNumberFactor)
+            if (CARDS_TO_PUT_NUMBER_WEIGHT[i] > cardsToPutNumberFactor && (i == CARDS_TO_PUT_NUMBER_WEIGHT.length - 1 || cardsToPutNumberFactor < CARDS_TO_PUT_NUMBER_WEIGHT[i + 1]))
                 cardsToPutNumber = i;
         int[] cardsToPut = new int[cardsToPutNumber];
         for (int i = 0; i < cardsToPutNumber; i++) {
