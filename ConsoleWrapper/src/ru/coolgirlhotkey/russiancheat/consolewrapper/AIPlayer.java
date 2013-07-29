@@ -2,7 +2,6 @@ package ru.coolgirlhotkey.russiancheat.consolewrapper;
 
 import ru.coolgirlhotkey.russiancheat.gamemechanics.Card;
 import ru.coolgirlhotkey.russiancheat.gamemechanics.Player;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,7 @@ public class AIPlayer extends Player {
     //AI logics constants
     final double CARD_IN_MY_DECK_WEIGHT = 0.1;
     final double MAX_DIFF_TO_CONSIDER = 0.15;
+    final double MAX_DIFF_TO_CONSIDER_CARD = 0.05;
     final double[] CARDS_TO_PUT_NUMBER_WEIGHT = new double[]{0, 0.33, 0.66, 0.93, 1.05, 1.14, 1.17};
     final double NO_CARDS_OF_VALUE_TRUTH_FACTOR = 0.90;
     final double CARD_IN_MY_DECK_TRUTH_WEIGHT = 0.07;
@@ -94,17 +94,14 @@ public class AIPlayer extends Player {
             truthFactor += (cardsToPutNumber - 1) * EACH_CARD_TO_PUT_TRUTH_WEIGHT;
             //TODO cardsOnBoard factor
             for (Card.CardSuit suit : Card.CardSuit.values())
-                if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] > 0)
+                if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] > 0.005)
                     cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = truthFactor < LIE_WEIGHT ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
             if (truthFactor < LIE_WEIGHT) {
-                for (Card.CardSuit suit : Card.CardSuit.values())
-                    if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] > 0)
-                        cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = LOW_CARD_FACTOR;
                 double aceChoiceFactor = rng.nextDouble();
                 aceChoiceFactor += EACH_ACE_IN_DECK_WEIGHT * cardsOfValue(Card.CardValue.Ace);
                 aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount();
                 for (Card.CardSuit suit : Card.CardSuit.values())
-                    if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] > 0)
+                    if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] > 0.005)
                         cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] = aceChoiceFactor > DEFAULT_ACE_WEIGHT ? HIGH_CARD_FACTOR : LOW_CARD_FACTOR;
             }
             double maxCardFactor = 0;
@@ -114,7 +111,7 @@ public class AIPlayer extends Player {
                 }
             List<Integer> considerableCards = new ArrayList<Integer>();
             for (int j = 0; j < cardFactor.length; j++) {
-                if (maxCardFactor - cardFactor[j] < MAX_DIFF_TO_CONSIDER)
+                if (cardFactor[j] > 0 && maxCardFactor - cardFactor[j] < MAX_DIFF_TO_CONSIDER_CARD)
                     considerableCards.add(j);
             }
             cardsToPut[i] = considerableCards.get(rng.nextInt(considerableCards.size()));
