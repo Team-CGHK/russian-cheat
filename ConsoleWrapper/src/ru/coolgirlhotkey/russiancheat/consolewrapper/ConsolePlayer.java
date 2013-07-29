@@ -30,8 +30,8 @@ public class ConsolePlayer extends Player {
             String userAnswerInput;
             String availableCardsOutput = "";
             for (int i = 0; i < valuesInGame.size(); i++)
-                availableCardsOutput += valuesInGame.get(i) != Card.CardValue.Ace ? (valuesInGame.get(i).toString()
-                                                                                     + (i < valuesInGame.size() - 1 ? " " : "")) : "";
+                availableCardsOutput += valuesInGame.get(i).toString()+" ";
+            availableCardsOutput = availableCardsOutput.trim();
             for (; ; ) {
                 System.out.printf("Choose a card value to declare: [%s]\n", availableCardsOutput);
                 userAnswerInput = br.readLine().toUpperCase();
