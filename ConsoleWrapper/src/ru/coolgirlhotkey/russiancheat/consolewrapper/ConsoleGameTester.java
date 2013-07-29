@@ -28,7 +28,7 @@ public class ConsoleGameTester {
                 System.out.printf("Enter a name for player #%d or enter \"AI\" to create an AI player: ", i);
                 //TODO when simple AI player will be created, add an option to create AI player instead of ConsolePlayer
                 String userAnswerInput = br.readLine();
-                players[i] = userAnswerInput.equals("AI") ? new AIPlayer() : new ConsolePlayer(br.readLine());
+                players[i] = userAnswerInput.equals("AI") ? new AIPlayer() : new ConsolePlayer(userAnswerInput);
             }
             GameServer server = new GameServer(players);
             try {

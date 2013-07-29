@@ -74,13 +74,20 @@ public class AIPlayer extends Player {
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
         int cardsToPutNumber = 1;
         for (int i = 0; i < CARDS_TO_PUT_NUMBER_WEIGHT.length; i++)
-            if (CARDS_TO_PUT_NUMBER_WEIGHT[i] > cardsToPutNumberFactor && (i == CARDS_TO_PUT_NUMBER_WEIGHT.length - 1 || cardsToPutNumberFactor < CARDS_TO_PUT_NUMBER_WEIGHT[i + 1]))
-                cardsToPutNumber = i;
+            if (CARDS_TO_PUT_NUMBER_WEIGHT[i] > cardsToPutNumberFactor && (i == CARDS_TO_PUT_NUMBER_WEIGHT.length - 1 || cardsToPutNumberFactor < CARDS_TO_PUT_NUMBER_WEIGHT[i + 1])) {
+                cardsToPutNumber = Math.min(i+1, cardsCount());
+                break;
+            }
         int[] cardsToPut = new int[cardsToPutNumber];
+        for (int i = 0; i<cardsToPut.length; i++)
+            cardsToPut[i] = -1;
         for (int i = 0; i < cardsToPutNumber; i++) {
             double[] cardFactor = new double[cards.length];
             for (int j = 0; j < cardFactor.length; j++) {
                 cardFactor[j] = hasCard(j) ? DEFAULT_CARD_FACTOR : 0;
+            }
+            for (int j = 0; j<i; j++) {
+                cardFactor[cardsToPut[j]] = 0;
             }
             double truthFactor = rng.nextDouble();
             truthFactor *= NO_CARDS_OF_VALUE_TRUTH_FACTOR + cardsOfValue(valuesInGame.get(declaredValueIndex)) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
@@ -102,45 +109,42 @@ public class AIPlayer extends Player {
             }
             double maxCardFactor = 0;
             for (int j = 0; j < cardFactor.length; j++)
-                if (cardFactor[i] > maxCardFactor) {
+                if (cardFactor[j] > maxCardFactor) {
                     maxCardFactor = cardFactor[j];
                 }
             List<Integer> considerableCards = new ArrayList<Integer>();
-            for (int j = 0; i < cardFactor.length; i++) {
-                if (maxCardFactor - cardFactor[i] < MAX_DIFF_TO_CONSIDER)
-                    considerableCards.add(i);
-                cardsToPut[i] = considerableCards.get(rng.nextInt(considerableCards.size()));
+            for (int j = 0; j < cardFactor.length; j++) {
+                if (maxCardFactor - cardFactor[j] < MAX_DIFF_TO_CONSIDER)
+                    considerableCards.add(j);
             }
+            cardsToPut[i] = considerableCards.get(rng.nextInt(considerableCards.size()));
         }
         return cardsToPut;
     }
 
     @Override
     public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount,
-                                             int actualCardsCount, List<Card.CardValue> valuesInGame) {
-        Random rnd = new Random();
-        double checkThreshold = LOW_CHECK_FACTOR + EACH_ACTUAL_CARD_CHECK_WEIGHT * actualCardsCount +
-                EACH_OUR_DECLARED_CARD_CHECK_WEIGHT * cardsOfValue(declaredCard) - EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT *
-                (Card.CardValue.values().length - valuesInGame.size());
+                                             int actualCardsCount, List<Card.CardValue> valuesInGame)   {
+               Random rnd = new Random();
+        double checkTreshold = LOW_CHECK_FACTOR + EACH_ACTUAL_CARD_CHECK_WEIGHT*actualCardsCount+
+                EACH_OUR_DECLARED_CARD_CHECK_WEIGHT*cardsOfValue(declaredCard)-EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT*
+                (Card.CardValue.values().length-valuesInGame.size());
         double checkFactor = rnd.nextDouble();
-        if (checkFactor < checkThreshold)  //check
-            return new DependentTurnResult(true, rnd.nextInt(actualCardsCount), null);
-        return new DependentTurnResult(false, -1,
-                chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
+        if (checkFactor<checkTreshold || !hasCards())  //check
+           return new DependentTurnResult(true,rnd.nextInt(actualCardsCount),null);
+        else
+            return new DependentTurnResult(false, -1, chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
     }
 
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
-
     }
 
     @Override
     public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
-
     }
 
     @Override
     public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues) {
-
     }
 }

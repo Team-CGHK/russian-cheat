@@ -66,13 +66,21 @@ public class GameServer {
             if (cardsOnBoard.size() == 0) {
                 List<Card.CardValue> declarableValues = new ArrayList<Card.CardValue>();
                 for (Card.CardValue value : valuesInGame)
+                    if (value != Card.CardValue.Ace)
                         declarableValues.add(value);
                 Player.FirstTurnResult result = players[currentPlayerIndex].firstTurn(declarableValues);
                 declaredCard = declarableValues.get(result.declaredCardValueIndex % declarableValues.size());
                 cardsOnBoard.add(result.cards);
                 onBoardCardsCount = result.cards.length;
+                try {
                 for (int card : result.cards)
                     players[currentPlayerIndex].dropCard(card);
+                }
+                catch (Player.DeckException ex) {
+                    for (int i : result.cards)
+                        System.out.println(i + " " + players[currentPlayerIndex].hasCard(i));
+                    throw ex;
+                }
                 for (Player player : players) {
                     player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length);
                 }
@@ -107,8 +115,15 @@ public class GameServer {
                 } else {
                     cardsOnBoard.add(result.cards);
                     onBoardCardsCount += result.cards.length;
+                    try {
                     for (int card : result.cards)
                         players[currentPlayerIndex].dropCard(card);
+                    }
+                    catch (Player.DeckException ex) {
+                        for (int i : result.cards)
+                            System.out.println(i + " " + players[currentPlayerIndex].hasCard(i));
+                        throw ex;
+                    }
                 }
             }
             do {
