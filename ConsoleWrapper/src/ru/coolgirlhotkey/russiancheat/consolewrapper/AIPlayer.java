@@ -35,6 +35,7 @@ public class AIPlayer extends Player {
     double aggressivenessOfCardsNumber;
 
     int hadCardsOfDeclaredValue;
+    boolean ignoreMyOwnFirstTurnNotification;
     //
 
     AIPlayer() {
@@ -54,11 +55,9 @@ public class AIPlayer extends Player {
         }
         // find the max factor value
         double maxFactor = 0;
-        int maxFactorValueIndex = -1;
         for (int i = 0; i < valueFactor.length; i++)
             if (valueFactor[i] > maxFactor) {
                 maxFactor = valueFactor[i];
-                maxFactorValueIndex = i;
             }
         // choose indexes of card values which have factors close enough to the max factor
         // to consider them to be declared
@@ -69,6 +68,10 @@ public class AIPlayer extends Player {
         }
         // choose randomly one of the considerable card values to declare
         int declaredValueIndex = considerableValuesIndexes.get(rng.nextInt(considerableValuesIndexes.size()));
+
+        ignoreMyOwnFirstTurnNotification = true; //needed to protect hadCardsOfDeclaredValue from being changed in the notification
+        hadCardsOfDeclaredValue = cardsOfValue(valuesInGame.get(declaredValueIndex));
+
         return new FirstTurnResult(declaredValueIndex, chooseCardsToPut(0, valuesInGame, declaredValueIndex));
     }
 
@@ -139,7 +142,9 @@ public class AIPlayer extends Player {
 
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount) {
-        hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
+        if (!ignoreMyOwnFirstTurnNotification)
+            hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
+        ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next first turn
     }
 
     @Override
