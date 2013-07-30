@@ -8,7 +8,7 @@ public abstract class Player {
     }
 
     protected boolean[] cards;
-
+    public int indexInHumanPlayerList; //TODO public is bad, how to do it better?
     protected String name;
 
     protected GameServer.PlayerInfo[] currentGamePlayersInfo;

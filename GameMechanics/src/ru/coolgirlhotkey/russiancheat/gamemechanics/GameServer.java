@@ -1,5 +1,6 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
+import ru.coolgirlhotkey.russiancheat.consolewrapper.HumanPlayerStatistics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +26,13 @@ public class GameServer {
         currentGameState = GameState.hasNotStarted;
         cardsOnBoard = new ArrayList<int[]>();
         deckSize = Card.MAX_DECK_SIZE;
-
+        int count =0;
+        for (int i =0; i<playersInGame;i++)  {
+            if (players[i].getName()!="AI") {
+                listOfHumansInGame.add(new HumanPlayerStatistics(players[i].getName()));
+                players[i].indexInHumanPlayerList = count++;
+            }
+        }
         //TODO decide whether players creation must be encapsulated into GameServer code
     }
 
@@ -34,9 +41,10 @@ public class GameServer {
 
     private int[] places;
     private int playersInGame;
-
+    private int turnsCount=1;
+    private int turnsCountInLap;
     int currentPlayerIndex;
-
+    private ArrayList<HumanPlayerStatistics> listOfHumansInGame = null;
     private enum GameState {
         hasNotStarted, hasStarted, hasFinished
     }
@@ -125,12 +133,18 @@ public class GameServer {
                     for (int card : result.cards) {
                         takeCardFromPlayer(currentPlayerIndex, card);
                     }
+                    listOfHumansInGame.get(players[currentPlayerIndex].indexInHumanPlayerList).FillTurnToCheck
+                            (turnsCountInLap%playersInGame==0? turnsCountInLap/playersInGame:
+                            turnsCountInLap/playersInGame +1);
+                    turnsCountInLap = 1;
                 }
             }
             do {
                 currentPlayerIndex++;
                 currentPlayerIndex %= players.length;
             } while (places[currentPlayerIndex] != 0); // ignoring players with no cards
+            turnsCount++;
+            turnsCountInLap++;
         }
     }
 
