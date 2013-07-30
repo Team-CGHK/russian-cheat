@@ -1,6 +1,7 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
-import ru.coolgirlhotkey.russiancheat.consolewrapper.HumanPlayerStatistics;
+import ru.coolgirlhotkey.russiancheat.consolewrapper.ConsolePlayer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,25 +16,20 @@ import java.util.Random;
  */
 public class GameServer {
 
-    public GameServer(Player[] players) {
-        this.players = players;
+    public GameServer(int playersCount, boolean[] isPlayerAI, String[] playerNames) {
+        this.players = new Player[playersCount];
         places = new int[players.length];
         playersInfo = new PlayerInfo[players.length];
-        for (int i = 0; i < playersInfo.length; i++) {
-            playersInfo[i] = new PlayerInfo(players[i].name);
-            players[i].currentGamePlayersInfo = playersInfo;
+        for (int playerIndex = 0; playerIndex < playersCount; playerIndex++) {
+            players[playerIndex] = isPlayerAI[playerIndex] ?
+                    new AIPlayer(playerIndex) :
+                    new ConsolePlayer(playerNames[playerIndex], playerIndex);
+            playersInfo[playerIndex] = new PlayerInfo(players[playerIndex].getName(), !isPlayerAI[playerIndex]);
+            players[playerIndex].currentGamePlayersInfo = playersInfo;
         }
         currentGameState = GameState.hasNotStarted;
         cardsOnBoard = new ArrayList<int[]>();
         deckSize = Card.MAX_DECK_SIZE;
-        int count =0;
-        for (int i =0; i<playersInGame;i++)  {
-            if (players[i].getName()!="AI") {
-                listOfHumansInGame.add(new HumanPlayerStatistics(players[i].getName()));
-                players[i].indexInHumanPlayerList = count++;
-            }
-        }
-        //TODO decide whether players creation must be encapsulated into GameServer code
     }
 
     private Player[] players;
@@ -41,10 +37,12 @@ public class GameServer {
 
     private int[] places;
     private int playersInGame;
-    private int turnsCount=1;
-    private int turnsCountInLap;
+
+    //private int turnsCount=1;
+    //private int turnsCountInLap;
+
     int currentPlayerIndex;
-    private ArrayList<HumanPlayerStatistics> listOfHumansInGame = null;
+
     private enum GameState {
         hasNotStarted, hasStarted, hasFinished
     }
@@ -101,6 +99,7 @@ public class GameServer {
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
+                                               Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard,
                                                !result.isChecking ? result.cards.length : -1);
                 }
                 if (result.isChecking) {
@@ -133,18 +132,12 @@ public class GameServer {
                     for (int card : result.cards) {
                         takeCardFromPlayer(currentPlayerIndex, card);
                     }
-                    listOfHumansInGame.get(players[currentPlayerIndex].indexInHumanPlayerList).FillTurnToCheck
-                            (turnsCountInLap%playersInGame==0? turnsCountInLap/playersInGame:
-                            turnsCountInLap/playersInGame +1);
-                    turnsCountInLap = 1;
                 }
             }
             do {
                 currentPlayerIndex++;
                 currentPlayerIndex %= players.length;
             } while (places[currentPlayerIndex] != 0); // ignoring players with no cards
-            turnsCount++;
-            turnsCountInLap++;
         }
     }
 
@@ -234,12 +227,12 @@ public class GameServer {
     }
 
     public class PlayerInfo {
-        private String name;
+        public final String name;
+        public final boolean isHuman;
 
-        public String getName() {return name;}
-
-        public PlayerInfo(String name) {
+        public PlayerInfo(String name, boolean isHuman) {
             this.name = name;
+            this.isHuman = isHuman;
         }
 
         private int cardsCount;

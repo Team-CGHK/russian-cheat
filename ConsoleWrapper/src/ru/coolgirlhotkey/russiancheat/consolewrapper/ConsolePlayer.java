@@ -16,8 +16,8 @@ import java.util.regex.Pattern;
 
 public class ConsolePlayer extends Player {
 
-    public ConsolePlayer(String name) {
-        super();
+    public ConsolePlayer(String name, int currentIndex) {
+        super(currentIndex);
         super.name = name;
     }
 
@@ -194,28 +194,29 @@ public class ConsolePlayer extends Player {
 
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
-        System.out.printf("%s's notification: %s has declared %s and put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), declaredCard.name(), actualCardsCount);
+        System.out.printf("%s's notification: %s has declared %s and put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, declaredCard.name(), actualCardsCount);
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount) {
         if (isChecking)
-            System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), cardToCheck, Card.getCardValue(showdown).name());
+            System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, cardToCheck, Card.getCardValue(showdown).name());
         else
-            System.out.printf("%s's notification: %s has put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), actualCardsCount);
+            System.out.printf("%s's notification: %s has put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, actualCardsCount);
     }
+
 
     @Override
     public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues) {
         String droppedValuesStrings = "";
         for (int i = 0; i < droppedValues.size(); i++)
             droppedValuesStrings += droppedValues.get(i).name() + (i < droppedValues.size() - 1 ? ", " : "");
-        System.out.printf("%s's notification: %s has dropped the following card values: %s\n", getName(), currentGamePlayersInfo[playerIndex].getName(), droppedValuesStrings);
+        System.out.printf("%s's notification: %s has dropped the following card values: %s\n", getName(), currentGamePlayersInfo[playerIndex].name, droppedValuesStrings);
     }
 
     @Override
     public void notifyPlayerTakingCards(int playerIndex, int cardsCount) {
-        System.out.printf("%s's notification: %s has taken %d cards from the board\n", getName(), currentGamePlayersInfo[playerIndex].getName(), cardsCount);
+        System.out.printf("%s's notification: %s has taken %d cards from the board\n", getName(), currentGamePlayersInfo[playerIndex].name, cardsCount);
     }
 
     @Override
@@ -237,10 +238,10 @@ public class ConsolePlayer extends Player {
             if (places[i] != 0)
                 infosSorted[places[i] - 1] = currentGamePlayersInfo[i];
         for (int i = 0; i < infosSorted.length && infosSorted[i] != null; i++)
-            System.out.printf("%d. %s\n", i + 1, infosSorted[i].getName());
+            System.out.printf("%d. %s\n", i + 1, infosSorted[i].name);
         for (int i = 0; i < places.length; i++)
             if (places[i] == 0)
-                System.out.printf("Loser: %s\n", currentGamePlayersInfo[i].getName());
+                System.out.printf("Loser: %s\n", currentGamePlayersInfo[i].name);
 
     }
 

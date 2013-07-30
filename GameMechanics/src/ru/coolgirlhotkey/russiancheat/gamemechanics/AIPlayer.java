@@ -1,7 +1,4 @@
-package ru.coolgirlhotkey.russiancheat.consolewrapper;
-
-import ru.coolgirlhotkey.russiancheat.gamemechanics.Card;
-import ru.coolgirlhotkey.russiancheat.gamemechanics.Player;
+package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +35,34 @@ public class AIPlayer extends Player {
     boolean ignoreMyOwnFirstTurnNotification;
     //
 
-    AIPlayer() {
-        super();
+    HumanStats currentHumanStats = new HumanStats();
+
+    private class HumanStats {
+        int totalLies;
+        private int[] cardsCountToLie = new int[7];
+        private int[] lapToLie = new int[Card.MAX_DECK_SIZE / 2 + 1];
+
+        int totalChecks;
+        private int[] lapToCheck = new int[Card.MAX_DECK_SIZE / 2 + 1];
+        private int[] cardNumberChecks = new int[Card.MAX_DECK_SIZE + 1];
+
+        public void recordLie(int lap, int cardsCount) {
+            totalLies++;
+            lapToLie[lap]++;
+            if (cardsCount < cardsCountToLie.length)
+                cardsCountToLie[cardsCount]++;
+        }
+
+        public void recordCheck(int lap, int cardToCheck) {
+            totalChecks++;
+            lapToCheck[lap]++;
+            cardNumberChecks[cardToCheck]++;
+        }
+    }
+
+
+    AIPlayer(int currentIndex) {
+        super(currentIndex);
         name = "AI" + (++instancesCount);
         Random rng = new Random();
         aggressivenessOfCardsNumber = 0.8 + rng.nextDouble() * 0.4;
@@ -140,15 +163,35 @@ public class AIPlayer extends Player {
             return new DependentTurnResult(false, -1, chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
     }
 
+    //stats gathering
+    int currentLap;
+    int lapStarterIndex;
+    int lastTurnPlayerIndex;
+    //
+
     @Override
     public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount) {
-        if (!ignoreMyOwnFirstTurnNotification)
+        lastTurnPlayerIndex = currentPlayerIndex;
+        if (!ignoreMyOwnFirstTurnNotification) {
             hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
-        ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next first turn
+            ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next first turn
+        }
+        lapStarterIndex = currentPlayerIndex;
+        currentLap = 0;
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount) {
+        lastTurnPlayerIndex = currentPlayerIndex;
+        if (isChecking && super.currentGamePlayersInfo[currentPlayerIndex].isHuman) { //gather checking stats
+            currentHumanStats.recordCheck(currentLap, cardToCheck);
+        }
+        if (currentPlayerIndex == lapStarterIndex)
+            currentLap++;
+        if (currentPlayerIndex == super.currentIndex
+            && super.currentGamePlayersInfo[lastTurnPlayerIndex].isHuman) { //gather lie stats
+            currentHumanStats.recordLie(currentLap, actualCardsCount);
+        }
     }
 
     @Override
@@ -157,20 +200,15 @@ public class AIPlayer extends Player {
 
     @Override
     public void notifyPlayerTakingCards(int playerIndex, int cardsCount) {
-
     }
 
     @Override
     public void notifyThisPlayerTakingCards(List<int[]> cards) {
-
     }
 
     @Override
     public void notifyEndGame(int[] places) {
-
     }
-
-
 
 
 }

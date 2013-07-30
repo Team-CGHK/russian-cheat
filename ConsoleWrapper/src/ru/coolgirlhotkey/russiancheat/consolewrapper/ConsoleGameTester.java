@@ -23,14 +23,15 @@ public class ConsoleGameTester {
                     break;
                 }
             }
-            Player[] players = new Player[playersCount];
+            String[] playerNames = new String[playersCount];
+            boolean[] isPlayerAI = new boolean[playersCount];
             for (int i = 0; i < playersCount; i++) {
                 System.out.printf("Enter a name for player #%d or enter \"AI\" to create an AI player: ", i);
-                //TODO when simple AI player will be created, add an option to create AI player instead of ConsolePlayer
                 String userAnswerInput = br.readLine();
-                players[i] = userAnswerInput.equals("AI") ? new AIPlayer() : new ConsolePlayer(userAnswerInput);
+                playerNames[i] = userAnswerInput;
+                isPlayerAI[i] = userAnswerInput.equals("AI");
             }
-            GameServer server = new GameServer(players);
+            GameServer server = new GameServer(playersCount, isPlayerAI, playerNames);
             try {
                 server.startGame();
             } catch (Player.DeckException ex) {

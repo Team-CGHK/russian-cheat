@@ -3,15 +3,16 @@ package ru.coolgirlhotkey.russiancheat.gamemechanics;
 import java.util.List;
 
 public abstract class Player {
-    public Player() {
+    public Player(int currentIndex) {
         cards = new boolean[Card.MAX_DECK_SIZE];
+        this.currentIndex = currentIndex;
     }
 
     protected boolean[] cards;
-    public int indexInHumanPlayerList; //TODO public is bad, how to do it better?
     protected String name;
 
     protected GameServer.PlayerInfo[] currentGamePlayersInfo;
+    protected final int currentIndex;
 
     public String getName() {
         return name;
@@ -22,7 +23,10 @@ public abstract class Player {
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount, List<Card.CardValue> valuesInGame);
 
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
-    abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
+
+    abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck,
+                                             int showdown, boolean checkSuccess, int actualCardsCount);
+
     abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
 
     abstract public void notifyPlayerTakingCards(int playerIndex, int cardsCount);
