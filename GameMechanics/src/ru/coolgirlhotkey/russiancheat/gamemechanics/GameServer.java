@@ -99,8 +99,8 @@ public class GameServer {
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
-                                               Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard,
-                                               !result.isChecking ? result.cards.length : -1);
+                                               result.isChecking ? Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard : false,
+                                               !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
