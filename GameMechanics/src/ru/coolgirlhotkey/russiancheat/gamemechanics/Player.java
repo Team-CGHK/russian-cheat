@@ -8,7 +8,6 @@ public abstract class Player {
     }
 
     protected boolean[] cards;
-    public int indexInHumanPlayerList; //TODO public is bad, how to do it better?
     protected String name;
 
     protected GameServer.PlayerInfo[] currentGamePlayersInfo;
@@ -22,7 +21,7 @@ public abstract class Player {
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount, List<Card.CardValue> valuesInGame);
 
     abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
-    abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount);
+    abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount, int playerTurnsCountInLap);
     abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
 
     abstract public void notifyPlayerTakingCards(int playerIndex, int cardsCount);

@@ -143,7 +143,12 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount,
+                                    int playerTurnsCountInLap) {
+        if (isChecking) {
+            HumanPlayerStatistics.fillTurnToCheck(playerTurnsCountInLap);
+            HumanPlayerStatistics.fillNumberOfCardToCheck(cardToCheck,actualCardsCount);
+        }
     }
 
     @Override
@@ -165,7 +170,26 @@ public class AIPlayer extends Player {
 
     }
 
-
-
-
 }
+
+    class HumanPlayerStatistics {      // one statistics for the machine
+        static private int [] turnToCheck = new int[27];
+        static private double [] numberOfCardsToPutLieFactor = new double[6];// it's not so important if the number of cards to put
+    //is more than five
+        static  private  double [] numberOfCardToCheck; {
+            numberOfCardToCheck = new double [53];
+            numberOfCardToCheck[1]=0.04;
+            numberOfCardToCheck[2]=0.15;
+            for (int i =3; i<53; i++) {
+                numberOfCardToCheck[i] += 0.1*(i+1);
+            }
+        }
+        public static  void fillTurnToCheck(int turnInLap){
+            turnToCheck[turnInLap]++;
+        }
+        public static void fillNumberOfCardToCheck(int cardToCheck, int actualCardsCount){
+            if (cardToCheck!=-1 && actualCardsCount!=1)
+                HumanPlayerStatistics.numberOfCardToCheck[cardToCheck]+=0.05;
+        }
+    }
+

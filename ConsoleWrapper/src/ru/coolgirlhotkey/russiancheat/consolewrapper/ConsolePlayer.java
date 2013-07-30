@@ -198,7 +198,8 @@ public class ConsolePlayer extends Player {
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, int actualCardsCount,
+                                   int playerTurnsCountInLap) {
         if (isChecking)
             System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].getName(), cardToCheck, Card.getCardValue(showdown).name());
         else

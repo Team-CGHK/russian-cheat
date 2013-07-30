@@ -1,6 +1,5 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
-import ru.coolgirlhotkey.russiancheat.consolewrapper.HumanPlayerStatistics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,13 +25,6 @@ public class GameServer {
         currentGameState = GameState.hasNotStarted;
         cardsOnBoard = new ArrayList<int[]>();
         deckSize = Card.MAX_DECK_SIZE;
-        int count =0;
-        for (int i =0; i<playersInGame;i++)  {
-            if (players[i].getName()!="AI") {
-                listOfHumansInGame.add(new HumanPlayerStatistics(players[i].getName()));
-                players[i].indexInHumanPlayerList = count++;
-            }
-        }
         //TODO decide whether players creation must be encapsulated into GameServer code
     }
 
@@ -44,7 +36,6 @@ public class GameServer {
     private int turnsCount=1;
     private int turnsCountInLap;
     int currentPlayerIndex;
-    private ArrayList<HumanPlayerStatistics> listOfHumansInGame = null;
     private enum GameState {
         hasNotStarted, hasStarted, hasFinished
     }
@@ -101,7 +92,9 @@ public class GameServer {
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
-                                               !result.isChecking ? result.cards.length : -1);
+                                               !result.isChecking ? result.cards.length : -1,
+                            turnsCountInLap = turnsCountInLap%playersInGame==0? turnsCountInLap/playersInGame:
+                                    turnsCountInLap/playersInGame+1);
                 }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
@@ -133,9 +126,6 @@ public class GameServer {
                     for (int card : result.cards) {
                         takeCardFromPlayer(currentPlayerIndex, card);
                     }
-                    listOfHumansInGame.get(players[currentPlayerIndex].indexInHumanPlayerList).FillTurnToCheck
-                            (turnsCountInLap%playersInGame==0? turnsCountInLap/playersInGame:
-                            turnsCountInLap/playersInGame +1);
                     turnsCountInLap = 1;
                 }
             }
