@@ -20,7 +20,7 @@ public class AIPlayer extends Player {
     final double MAX_DIFF_TO_CONSIDER_CARD = 0.05;
     // choose cardsToPutNumber logic
     double aggressivenessOfCardsNumber;
-    final double[] CARDS_TO_PUT_NUMBER_WEIGHT = new double[]{0, 0.4, 0.8, 0.93, 1.05, 1.14, 1.17};
+    final double[] CARDS_TO_PUT_NUMBER_WEIGHT = new double[]{0, 0.45, 0.9, 0.99, 1.05, 1.07, 1.09};
     // truth and lie logic
     final double LIE_THRESHOLD = 0.6;
     final double CARD_IN_MY_DECK_TRUTH_WEIGHT = 0.07;
@@ -152,7 +152,7 @@ public class AIPlayer extends Player {
         super(currentIndex);
         name = "AI" + (++instancesCount);
         Random rng = new Random();
-        aggressivenessOfCardsNumber = 0.8 + rng.nextDouble() * 0.4;
+        aggressivenessOfCardsNumber = 0.8 + rng.nextDouble() * 0.3;
     }
 
     public static void loadStatsFromFile(String fileName) {
