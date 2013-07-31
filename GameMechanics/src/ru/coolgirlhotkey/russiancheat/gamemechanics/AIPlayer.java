@@ -212,7 +212,6 @@ public class AIPlayer extends Player {
                 cardsToPutNumber = i + 1;
             else
                 break;
-        //TODO decrease average cardsToPutNumber
         cardsToPutNumber = Math.min(cardsToPutNumber, cardsCount());
         int[] cardsToPut = new int[cardsToPutNumber];
         for (int i = 0; i < cardsToPut.length; i++)
@@ -234,7 +233,11 @@ public class AIPlayer extends Player {
                 if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
                     cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = lieFactor < LIE_THRESHOLD ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
             if (lieFactor < LIE_THRESHOLD) {
-                //TODO increase factors of card, which AI has in a number of 1
+                for (Card.CardValue value : Card.CardValue.values())
+                    if (value != valuesInGame.get(declaredValueIndex) && cardsOfValue(value) == 1)
+                        for (Card.CardSuit suit : Card.CardSuit.values())
+                            if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
+                                cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = HIGH_CARD_FACTOR;
                 double aceChoiceFactor = rng.nextDouble();
                 aceChoiceFactor += EACH_ACE_IN_DECK_WEIGHT * cardsOfValue(Card.CardValue.Ace, cardsToPut);
                 aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount();
