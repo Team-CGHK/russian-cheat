@@ -1,5 +1,9 @@
 package ru.coolgirlhotkey.russiancheat.gamemechanics;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -45,8 +49,6 @@ public class AIPlayer extends Player {
     boolean ignoreMyOwnFirstTurnNotification;
     //
 
-    HumanStats currentHumanStats = new HumanStats();
-
     private static class HumanStats {
         static private int[] cardsCountToLieRecords = new int[7];
         static private int[] cardsCountToLieConfirmed = new int[cardsCountToLieRecords.length];
@@ -56,6 +58,48 @@ public class AIPlayer extends Player {
 
         static private int[] lapToCheckRecords = new int[Card.MAX_DECK_SIZE / 2 + 1];
         static private int[] lapToCheckConfirmed = new int[lapToCheckRecords.length];
+
+        static private void fillArrayWithFileLine(BufferedReader br, int[] array) throws IOException {
+            String[] parts = br.readLine().split("\\s+");
+            for (int i = 0; i < array.length; i++)
+                array[i] = Integer.parseInt(parts[i]);
+        }
+
+        static private void printArrayToFileLine(PrintWriter pw, int[] array) throws IOException {
+            for (int i = 0; i < array.length; i++)
+                pw.print(array[i] + " ");
+            pw.println();
+        }
+
+        static public void fromFile(String fileName) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(fileName));
+                fillArrayWithFileLine(br, cardsCountToLieRecords);
+                fillArrayWithFileLine(br, cardsCountToLieConfirmed);
+                fillArrayWithFileLine(br, lapToLieRecords);
+                fillArrayWithFileLine(br, lapToLieConfirmed);
+                fillArrayWithFileLine(br, lapToCheckRecords);
+                fillArrayWithFileLine(br, lapToCheckConfirmed);
+                br.close();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+
+        static public void toFile(String fileName) {
+            try {
+                PrintWriter pw = new PrintWriter(fileName);
+                printArrayToFileLine(pw, cardsCountToLieRecords);
+                printArrayToFileLine(pw, cardsCountToLieConfirmed);
+                printArrayToFileLine(pw, lapToLieRecords);
+                printArrayToFileLine(pw, lapToLieConfirmed);
+                printArrayToFileLine(pw, lapToCheckRecords);
+                printArrayToFileLine(pw, lapToCheckConfirmed);
+                pw.close();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
 
         static public void recordLieStats(boolean isLie, int lap, int cardsCount) {
             if (cardsCount < cardsCountToLieRecords.length) {
@@ -111,6 +155,14 @@ public class AIPlayer extends Player {
         aggressivenessOfCardsNumber = 0.8 + rng.nextDouble() * 0.4;
     }
 
+    public static void loadStatsFromFile(String fileName) {
+        HumanStats.fromFile(fileName);
+    }
+
+    public static void saveStatsToFile(String fileName) {
+        HumanStats.toFile(fileName);
+    }
+
     @Override
     public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame) {
         currentLap = 0;
@@ -160,6 +212,7 @@ public class AIPlayer extends Player {
                 cardsToPutNumber = i + 1;
             else
                 break;
+        //TODO decrease average cardsToPutNumber
         cardsToPutNumber = Math.min(cardsToPutNumber, cardsCount());
         int[] cardsToPut = new int[cardsToPutNumber];
         for (int i = 0; i < cardsToPut.length; i++)
@@ -173,12 +226,15 @@ public class AIPlayer extends Player {
                 cardFactor[cardsToPut[j]] = 0;
             }
             double lieFactor = rng.nextDouble();
-            lieFactor *= NO_CARDS_OF_VALUE_TRUTH_FACTOR_MULTIPLIER + cardsOfValue(valuesInGame.get(declaredValueIndex), cardsToPut) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
-            lieFactor += HumanStats.getCheckChanceOnLapConfidence(currentLap) * (HumanStats.getCheckChanceOnLap(currentLap) - 0.5) * TRUTH_STATS_WEIGHT;
+            lieFactor *= NO_CARDS_OF_VALUE_TRUTH_FACTOR_MULTIPLIER +
+                         cardsOfValue(valuesInGame.get(declaredValueIndex), cardsToPut) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
+            lieFactor += HumanStats.getCheckChanceOnLapConfidence(currentLap)
+                         * (HumanStats.getCheckChanceOnLap(currentLap) - 0.5) * TRUTH_STATS_WEIGHT;
             for (Card.CardSuit suit : Card.CardSuit.values())
                 if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
                     cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = lieFactor < LIE_THRESHOLD ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
             if (lieFactor < LIE_THRESHOLD) {
+                //TODO increase factors of card, which AI has in a number of 1
                 double aceChoiceFactor = rng.nextDouble();
                 aceChoiceFactor += EACH_ACE_IN_DECK_WEIGHT * cardsOfValue(Card.CardValue.Ace, cardsToPut);
                 aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount();

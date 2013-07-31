@@ -1,9 +1,11 @@
 package ru.coolgirlhotkey.russiancheat.consolewrapper;
 
+import ru.coolgirlhotkey.russiancheat.gamemechanics.AIPlayer;
 import ru.coolgirlhotkey.russiancheat.gamemechanics.GameServer;
 import ru.coolgirlhotkey.russiancheat.gamemechanics.Player;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -15,6 +17,8 @@ public class ConsoleGameTester {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
             int playersCount;
+            if (new File("humanstats.hst").exists())
+                AIPlayer.loadStatsFromFile("humanstats.hst");
             for (; ; ) {
                 System.out.println("Choose players number: [2..4]");
                 String userAnswerInput = br.readLine();
@@ -37,6 +41,7 @@ public class ConsoleGameTester {
             } catch (Player.DeckException ex) {
                 System.out.printf(ex.getMessage());
             }
+            AIPlayer.saveStatsToFile("humanstats.hst");
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
