@@ -203,6 +203,13 @@ public class AIPlayer extends Player {
         return result;
     }
 
+    public int cardsCount(int[] exclude) {
+        int result = super.cardsCount();
+        for (int i = 0; i < exclude.length; i++)
+            if (exclude[i] != -1) result--;
+        return result;
+    }
+
     private int[] chooseCardsToPut(int cardsOnBoard, List<Card.CardValue> valuesInGame, int declaredValueIndex) {
         Random rng = new Random();
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
@@ -229,6 +236,8 @@ public class AIPlayer extends Player {
                          cardsOfValue(valuesInGame.get(declaredValueIndex), cardsToPut) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
             lieFactor += HumanStats.getCheckChanceOnLapConfidence(currentLap)
                          * (HumanStats.getCheckChanceOnLap(currentLap) - 0.5) * TRUTH_STATS_WEIGHT;
+            if (valuesInGame.size() == 2 && cardsCount(cardsToPut) == cardsOfValue(Card.CardValue.Ace) + 1)
+                lieFactor = 1;
             for (Card.CardSuit suit : Card.CardSuit.values())
                 if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
                     cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = lieFactor < LIE_THRESHOLD ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
@@ -240,7 +249,7 @@ public class AIPlayer extends Player {
                                 cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = HIGH_CARD_FACTOR;
                 double aceChoiceFactor = rng.nextDouble();
                 aceChoiceFactor += EACH_ACE_IN_DECK_WEIGHT * cardsOfValue(Card.CardValue.Ace, cardsToPut);
-                aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount();
+                aceChoiceFactor -= EACH_CARD_DECREASE_ACE_WEIGHT * cardsCount(cardsToPut);
                 for (Card.CardSuit suit : Card.CardSuit.values())
                     if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] != 0)
                         cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] = aceChoiceFactor > NON_ACE_THRESHOLD ? HIGH_CARD_FACTOR : LOW_CARD_FACTOR;
