@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by hotkey on 28.07.13.
@@ -50,36 +48,58 @@ public class AIPlayer extends Player {
     //
 
     private static class HumanStats {
-        static private int[] cardsCountToLieRecords = new int[7];
-        static private int[] cardsCountToLieConfirmed = new int[cardsCountToLieRecords.length];
 
-        static private int[] lapToLieRecords = new int[Card.MAX_DECK_SIZE / 2 + 1];
-        static private int[] lapToLieConfirmed = new int[lapToLieRecords.length];
+        static class FixedSizeBooleanStats {
+            Deque<Boolean> data = new LinkedList<Boolean>();
+            int trueValues = 0;
 
-        static private int[] lapToCheckRecords = new int[Card.MAX_DECK_SIZE / 2 + 1];
-        static private int[] lapToCheckConfirmed = new int[lapToCheckRecords.length];
+            double getAverageValue() { return data.size() > 0 ? trueValues / data.size() : 0; }
 
-        static private void fillArrayWithFileLine(BufferedReader br, int[] array) throws IOException {
-            String[] parts = br.readLine().split("\\s+");
-            for (int i = 0; i < array.length; i++)
-                array[i] = Integer.parseInt(parts[i]);
+            double getConfidence() {return data.size() / size; }
+
+            private int size;
+
+            FixedSizeBooleanStats(int size) {
+                if (size < 1) throw new IllegalArgumentException("size should be more than 0");
+                this.size = size;
+            }
+
+            void gather(Boolean value) {
+                if (data.size() == size)
+                    if (data.poll()) trueValues--;
+                data.add(value);
+                if (value) trueValues++;
+            }
         }
 
-        static private void printArrayToFileLine(PrintWriter pw, int[] array) throws IOException {
-            for (int i = 0; i < array.length; i++)
-                pw.print(array[i] + " ");
+        static private FixedSizeBooleanStats[] cardsCountToLieStats = new FixedSizeBooleanStats[7];
+        static private FixedSizeBooleanStats[] lapToLieStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
+        static private FixedSizeBooleanStats[] lapToCheckStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
+
+        static private void fillStatsWithFileLine(BufferedReader br, FixedSizeBooleanStats stats) throws IOException {
+            String[] parts = br.readLine().split("\\s+");
+            for (int i = 0; i < parts.length; i++)
+                stats.data.add(Integer.parseInt(parts[i]) == 1);
+        }
+
+        static private void printStatsToFileLine(PrintWriter pw, FixedSizeBooleanStats stats) throws IOException {
+            while (stats.data.size() > 0)
+                pw.print(stats.data.pollLast() ? 1 : 0 + " ");
             pw.println();
         }
 
         static public void fromFile(String fileName) {
             try {
                 BufferedReader br = new BufferedReader(new FileReader(fileName));
-                fillArrayWithFileLine(br, cardsCountToLieRecords);
-                fillArrayWithFileLine(br, cardsCountToLieConfirmed);
-                fillArrayWithFileLine(br, lapToLieRecords);
-                fillArrayWithFileLine(br, lapToLieConfirmed);
-                fillArrayWithFileLine(br, lapToCheckRecords);
-                fillArrayWithFileLine(br, lapToCheckConfirmed);
+                int n = Math.min(Integer.parseInt(br.readLine()), cardsCountToLieStats.length);
+                for (int i = 0; i < n; i++)
+                    fillStatsWithFileLine(br, cardsCountToLieStats[i]);
+                n = Math.min(Integer.parseInt(br.readLine()), lapToLieStats.length);
+                for (int i = 0; i < n; i++)
+                    fillStatsWithFileLine(br, lapToLieStats[i]);
+                n = Math.min(Integer.parseInt(br.readLine()), lapToLieStats.length);
+                for (int i = 0; i < n; i++)
+                    fillStatsWithFileLine(br, lapToLieStats[i]);
                 br.close();
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
@@ -89,12 +109,15 @@ public class AIPlayer extends Player {
         static public void toFile(String fileName) {
             try {
                 PrintWriter pw = new PrintWriter(fileName);
-                printArrayToFileLine(pw, cardsCountToLieRecords);
-                printArrayToFileLine(pw, cardsCountToLieConfirmed);
-                printArrayToFileLine(pw, lapToLieRecords);
-                printArrayToFileLine(pw, lapToLieConfirmed);
-                printArrayToFileLine(pw, lapToCheckRecords);
-                printArrayToFileLine(pw, lapToCheckConfirmed);
+                pw.println(cardsCountToLieStats.length);
+                for (int i = 0; i < cardsCountToLieStats.length; i++)
+                    printStatsToFileLine(pw, cardsCountToLieStats[i]);
+                pw.println(lapToLieStats.length);
+                for (int i = 0; i < lapToLieStats.length; i++)
+                    printStatsToFileLine(pw, lapToLieStats[i]);
+                pw.println(lapToCheckStats.length);
+                for (int i = 0; i < lapToCheckStats.length; i++)
+                    printStatsToFileLine(pw, lapToCheckStats[i]);
                 pw.close();
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
@@ -102,49 +125,38 @@ public class AIPlayer extends Player {
         }
 
         static public void recordLieStats(boolean isLie, int lap, int cardsCount) {
-            if (cardsCount < cardsCountToLieRecords.length) {
-                cardsCountToLieRecords[cardsCount]++;
-                if (isLie)
-                    cardsCountToLieConfirmed[cardsCount]++;
-                lapToLieRecords[lap]++;
-                if (isLie)
-                    lapToLieConfirmed[lap]++;
+            if (cardsCount < cardsCountToLieStats.length) {
+                cardsCountToLieStats[cardsCount].gather(isLie);
+                lapToLieStats[lap].gather(isLie);
             }
         }
 
         static public void recordCheckStats(boolean isCheck, int lap) {
-            lapToCheckRecords[lap]++;
-            if (isCheck)
-                lapToCheckConfirmed[lap]++;
+            lapToCheckStats[lap].gather(isCheck);
         }
 
         static public double getLieChanceOnCardsCount(int cardsCount) {
-            return cardsCount < cardsCountToLieRecords.length ?
-                    1.0 * cardsCountToLieConfirmed[cardsCount] / (cardsCountToLieRecords[cardsCount] + 1e-15) : 1;
-            //1e-15 is to avoid division by zero and NaN as a result
+            return cardsCount < cardsCountToLieStats.length ? cardsCountToLieStats[cardsCount].getAverageValue() : 0;
         }
 
         static public double getLieChanceOnCardsCountConfidence(int cardsCount) {
-            return cardsCount < cardsCountToLieRecords.length ?
-                    cardsCountToLieRecords[cardsCount] > 1 ? 1 : 0 : 0;
+            return cardsCount < cardsCountToLieStats.length ? cardsCountToLieStats[cardsCount].getConfidence() : 0;
         }
 
         static public double getLieChanceOnLap(int lap) {
-            return lap < lapToLieRecords.length ?
-                    1.0 * lapToLieConfirmed[lap] / (lapToLieRecords[lap] + 1e-15) : 1;
+            return lapToCheckStats[lap].getAverageValue();
         }
 
         static public double getLieChanceOnLapConfidence(int lap) {
-            return lapToLieRecords[lap] > 1 ? 1 : 0;
+            return lapToCheckStats[lap].getConfidence();
         }
 
         static public double getCheckChanceOnLap(int lap) {
-            return lap < lapToCheckRecords.length ?
-                    1.0 * lapToCheckConfirmed[lap] / (lapToCheckRecords[lap] + 1e-15) : 1;
+            return lapToCheckStats[lap].getAverageValue();
         }
 
         static public double getCheckChanceOnLapConfidence(int lap) {
-            return lapToCheckRecords[lap] > 1 ? 1 : 0;
+            return lapToCheckStats[lap].getConfidence();
         }
     }
 
