@@ -75,25 +75,22 @@ public class ConsolePlayer extends Player {
     private int[] cardStringsToIndexesArray(List<String> cardStrings) {
         if (cardStrings.size() == 0)
             return null; //no cards in input while at least one is required
-        int[] cardsOfValueCount = new int[Card.CardValue.values().length];
         int[] result = new int[cardStrings.size()];
         int pos = 0;
+        boolean cardIsChosen[] = new boolean[Card.MAX_DECK_SIZE];
         for (String cardValueStr : cardStrings) {
             Card.CardValue value = Card.parseCardValue(cardValueStr);
-            cardsOfValueCount[value.ordinal()]++;
-        }
-        for (Card.CardValue cardValue : Card.CardValue.values()) {
-            for (Card.CardSuit cardSuit : Card.CardSuit.values()) {
-                // TODO optimise: for (x : A) loop start is time-expensive, there's no need in inner loop if cardsOfValueCount[i] == 0
-                if (cardsOfValueCount[cardValue.ordinal()] == 0)
+            boolean success = false;
+            for (Card.CardSuit suit : Card.CardSuit.values()) {
+                int cardIndex = Card.getCardIndex(value, suit);
+                if (hasCard(cardIndex) && !cardIsChosen[cardIndex]) {
+                    result[pos++] = cardIndex;
+                    cardIsChosen[cardIndex] = true;
+                    success = true;
                     break;
-                if (this.hasCard(Card.getCardIndex(cardValue, cardSuit))) {
-                    cardsOfValueCount[cardValue.ordinal()]--;
-                    result[pos++] = Card.getCardIndex(cardValue, cardSuit);
                 }
             }
-            if (cardsOfValueCount[cardValue.ordinal()] > 0)
-                return null; //player has not enough cards of cardValue
+            if (!success) return null; //player has no such cards
         }
         return result;
     }
