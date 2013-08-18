@@ -49,9 +49,9 @@ public class AIPlayer extends Player {
     private static class HumanStats {
 
         // stats constants
-        final int CARDS_COUNT_TO_LIE_STATS_SIZE = 5;
-        final int LAP_TO_LIE_STATS_SIZE = 5;
-        final int LAP_TO_CHECK_STATS_SIZE = 5;
+        static final int CARDS_COUNT_TO_LIE_STATS_SIZE = 5;
+        static final int LAP_TO_LIE_STATS_SIZE = 5;
+        static final int LAP_TO_CHECK_STATS_SIZE = 5;
 
         static class FixedSizeBooleanStats {
             Deque<Boolean> data = new LinkedList<Boolean>();
@@ -80,7 +80,7 @@ public class AIPlayer extends Player {
         static private FixedSizeBooleanStats[] lapToLieStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
         static private FixedSizeBooleanStats[] lapToCheckStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
 
-        {
+        static {
             for (int i = 0; i < cardsCountToLieStats.length; i++)
                 cardsCountToLieStats[i] = new FixedSizeBooleanStats(CARDS_COUNT_TO_LIE_STATS_SIZE);
             for (int i = 0; i < lapToLieStats.length; i++)
