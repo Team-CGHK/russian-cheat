@@ -40,7 +40,6 @@ public class AIPlayer extends Player {
     final double EACH_KNOWN_DECLARED_CARD_CHECK_WEIGHT = 0.10;
     final double EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT = 0.01;
     final double CHECK_STATS_WEIGHT = 0.4;
-    //
 
 
     int hadCardsOfDeclaredValue;
@@ -48,6 +47,11 @@ public class AIPlayer extends Player {
     //
 
     private static class HumanStats {
+
+        // stats constants
+        final int CARDS_COUNT_TO_LIE_STATS_SIZE = 5;
+        final int LAP_TO_LIE_STATS_SIZE = 5;
+        final int LAP_TO_CHECK_STATS_SIZE = 5;
 
         static class FixedSizeBooleanStats {
             Deque<Boolean> data = new LinkedList<Boolean>();
@@ -75,6 +79,15 @@ public class AIPlayer extends Player {
         static private FixedSizeBooleanStats[] cardsCountToLieStats = new FixedSizeBooleanStats[7];
         static private FixedSizeBooleanStats[] lapToLieStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
         static private FixedSizeBooleanStats[] lapToCheckStats = new FixedSizeBooleanStats[Card.MAX_DECK_SIZE / 2 + 1];
+
+        {
+            for (int i = 0; i < cardsCountToLieStats.length; i++)
+                cardsCountToLieStats[i] = new FixedSizeBooleanStats(CARDS_COUNT_TO_LIE_STATS_SIZE);
+            for (int i = 0; i < lapToLieStats.length; i++)
+                lapToLieStats[i] = new FixedSizeBooleanStats(LAP_TO_LIE_STATS_SIZE);
+            for (int i = 0; i < lapToCheckStats.length; i++)
+                lapToCheckStats[i] = new FixedSizeBooleanStats(LAP_TO_CHECK_STATS_SIZE);
+        }
 
         static private void fillStatsWithFileLine(BufferedReader br, FixedSizeBooleanStats stats) throws IOException {
             String[] parts = br.readLine().split("\\s+");
