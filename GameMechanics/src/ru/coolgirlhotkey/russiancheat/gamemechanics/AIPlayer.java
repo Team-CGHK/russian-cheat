@@ -91,13 +91,13 @@ public class AIPlayer extends Player {
 
         static private void fillStatsWithFileLine(BufferedReader br, FixedSizeBooleanStats stats) throws IOException {
             String[] parts = br.readLine().split("\\s+");
-            for (int i = 0; i < parts.length; i++)
+            for (int i = 0; i < parts.length && parts[i].length() > 0; i++)
                 stats.data.add(Integer.parseInt(parts[i]) == 1);
         }
 
         static private void printStatsToFileLine(PrintWriter pw, FixedSizeBooleanStats stats) throws IOException {
             while (stats.data.size() > 0)
-                pw.print(stats.data.pollLast() ? 1 : 0 + " ");
+                pw.print((stats.data.pollLast() ? 1 : 0) + " ");
             pw.println();
         }
 
