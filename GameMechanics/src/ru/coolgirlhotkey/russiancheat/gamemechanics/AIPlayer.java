@@ -240,7 +240,7 @@ public class AIPlayer extends Player {
         if (playersInGameCount() == 2 && nextPlayerCardsCount() == 0 && cardsOfValue(valuesInGame.get(declaredValueIndex)) != 0) {
             List<Integer> cardsToPut = new ArrayList<Integer>();
             for (Card.CardSuit suit : Card.CardSuit.values())
-                if (cards[Card.getCardIndex(Card.getCardValue(declaredValueIndex), suit)]) {
+                if (hasCard(Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit))) {
                     cardsToPut.add(Card.getCardIndex(Card.getCardValue(declaredValueIndex), suit));
                     break;
                 }
