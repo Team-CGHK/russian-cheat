@@ -21,7 +21,6 @@ public class ConsolePlayer extends Player {
         super.name = name;
     }
 
-    int nextPlayerCardsNumber;
     @Override
     public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame) {
         System.out.printf("%s's turn: (press Enter)\n", getName());
@@ -190,16 +189,17 @@ public class ConsolePlayer extends Player {
         //TODO the same fix for exception handling
     }
 
+    //TODO LOW PRIORITY accumulate notifications and show them only in this player's turn
+    //needed to hide cards from player, who's not allowed to see them, while playing hot-seat
+    //playing versus AI won't be affected with this feature
+
     @Override
-    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount, int nextPlayerCardsNumber) {
-        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
+    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
         System.out.printf("%s's notification: %s has declared %s and put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, declaredCard.name(), actualCardsCount);
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount,
-                                    int nextPlayerCardsNumber) {
-        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount) {
         if (isChecking)
             System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, cardToCheck+1, Card.getCardValue(showdown).toString() + Card.getCardSuit(showdown).toString());
         else

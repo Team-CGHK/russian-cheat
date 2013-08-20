@@ -22,10 +22,10 @@ public abstract class Player {
 
     abstract public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount, int actualCardsCount, List<Card.CardValue> valuesInGame);
 
-    abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount, int nextPlayerCardsNumber);
+    abstract public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount);
 
     abstract public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck,
-                                             int showdown, boolean checkSuccess, int actualCardsCount,int nextPlayerCardsNumber);
+                                             int showdown, boolean checkSuccess, int actualCardsCount);
 
     abstract public void notifyDroppedCardValues(int playerIndex, List<Card.CardValue> droppedValues);
 
@@ -113,5 +113,25 @@ public abstract class Player {
                 count++;
         }
         return count;
+    }
+
+    protected int nextPlayerCardsCount() {
+        int playerIndex = currentIndex + 1;
+        for (; ; ) {
+            playerIndex %= currentGamePlayersInfo.length;
+            if (currentGamePlayersInfo[playerIndex].isInGame()) {
+                return playerIndex != currentIndex
+                        ? currentGamePlayersInfo[playerIndex].getCardsCount()
+                        : -1;
+            }
+        }
+    }
+
+    protected int playersInGameCount() {
+        int result = 0;
+        for (GameServer.PlayerInfo playerInfo : currentGamePlayersInfo)
+            if (playerInfo.isInGame())
+                result++;
+        return result;
     }
 }

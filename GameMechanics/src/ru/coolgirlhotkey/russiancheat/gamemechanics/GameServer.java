@@ -34,12 +34,10 @@ public class GameServer {
 
     private Player[] players;
     private PlayerInfo[] playersInfo;
+    //TODO encapsulate access by index to avoid assignment into playersInfo[]
 
     private int[] places;
     private int playersInGame;
-
-    //private int turnsCount=1;
-    //private int turnsCountInLap;
 
     int currentPlayerIndex;
 
@@ -76,7 +74,6 @@ public class GameServer {
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
-        int currentPlayer=0;
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
                 List<Card.CardValue> declarableValues = new ArrayList<Card.CardValue>();
@@ -91,26 +88,16 @@ public class GameServer {
                     takeCardFromPlayer(currentPlayerIndex, card);
                 }
                 for (Player player : players) {
-                    player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length,
-                            (playersInGame - currentPlayer)>1 ? players[currentPlayer].currentGamePlayersInfo[currentPlayer+1].getCardsCount() :
-                                    players[currentPlayer].currentGamePlayersInfo[0].getCardsCount());
-                    currentPlayer++;
-                    if (currentPlayer==playersInGame)
-                        currentPlayer = 0;
+                    player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length);
                 }
             } else {
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
-                        (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length, valuesInGame.subList(0,valuesInGame.size()));
+                        (declaredCard, onBoardCardsCount, cardsOnBoard.get(cardsOnBoard.size() - 1).length, valuesInGame.subList(0, valuesInGame.size()));
                 for (Player player : players) {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
                                                result.isChecking ? Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard : false,
-                                               !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length,
-                            (playersInGame - currentPlayer)>1 ? players[currentPlayer].currentGamePlayersInfo[currentPlayer+1].getCardsCount() :
-                                    players[currentPlayer].currentGamePlayersInfo[0].getCardsCount());
-                    currentPlayer++;
-                    if (currentPlayer==playersInGame)
-                        currentPlayer = 0;
+                                               !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length);
                 }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
@@ -222,6 +209,7 @@ public class GameServer {
             boolean playerHasCards = places[i] != 0 || players[i].hasCards();
             if (!playerHasCards && places[i] == 0) {
                 places[i] = players.length - (--playersInGame);
+                playersInfo[i].inGame = false;
             }
         }
         if (playersInGame == 1 || isDraw()) {
@@ -239,6 +227,7 @@ public class GameServer {
     public class PlayerInfo {
         public final String name;
         public final boolean isHuman;
+        private boolean inGame = true;
 
         public PlayerInfo(String name, boolean isHuman) {
             this.name = name;
@@ -248,6 +237,10 @@ public class GameServer {
         private int cardsCount;
 
         public int getCardsCount() {return cardsCount;}
+
+        public boolean isInGame() {
+            return inGame;
+        }
     }
 
 }

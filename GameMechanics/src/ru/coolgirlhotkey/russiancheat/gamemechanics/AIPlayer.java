@@ -44,7 +44,6 @@ public class AIPlayer extends Player {
 
     int hadCardsOfDeclaredValue;
     boolean ignoreMyOwnFirstTurnNotification;
-    int nextPlayerCardsNumber;
     //
 
     private static class HumanStats {
@@ -237,13 +236,33 @@ public class AIPlayer extends Player {
     }
 
     private int[] chooseCardsToPut(int cardsOnBoard, List<Card.CardValue> valuesInGame, int declaredValueIndex) {
-        if (nextPlayerCardsNumber==0 && cardsOfValue(Card.getCardValue(declaredValueIndex))!=0){
-            int [] cardsToPut = new int [1];
+        // END GAME
+        if (playersInGameCount() == 2 && nextPlayerCardsCount() == 0 && cardsOfValue(valuesInGame.get(declaredValueIndex)) != 0) {
+            List<Integer> cardsToPut = new ArrayList<Integer>();
             for (Card.CardSuit suit : Card.CardSuit.values())
-                if (cards[Card.getCardIndex(Card.getCardValue(declaredValueIndex),suit)])
-                    cardsToPut[0] = Card.getCardIndex(Card.getCardValue(declaredValueIndex),suit);
-            return cardsToPut;
+                if (cards[Card.getCardIndex(Card.getCardValue(declaredValueIndex), suit)]) {
+                    cardsToPut.add(Card.getCardIndex(Card.getCardValue(declaredValueIndex), suit));
+                    break;
+                }
+            //workaround to avoid this turn in "AAAA8 vs 888" situation
+            if (cardsOfValue(valuesInGame.get(declaredValueIndex)) == 1) { //1, because cardsOfValue will not have changed since check above - the card ^ will has not been removed from cards[] yet
+                //put any lie. it may not be an Ace, if more card values are in game
+                for (int card = 0; card < cards.length; card++) {
+                    if (hasCard(card) && Card.getCardValue(card) != valuesInGame.get(declaredValueIndex)) {
+                        cardsToPut.add(card);
+                        break;
+                    }
+                }
+            }
+            int[] result = new int[cardsToPut.size()];
+            for (int i = 0; i < cardsToPut.size(); i++)
+                result[i] = cardsToPut.get(i);
+            return result;
         }
+        boolean needOneTruth = (valuesInGame.size() == 2 && cardsCount() == cardsOfValue(Card.CardValue.Ace) + 1);
+        //is used later for truth decision in end game. moved to END GAME region just to make an order in the code
+
+        // REGULAR TURN
         Random rng = new Random();
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
         int cardsToPutNumber = 1;
@@ -269,12 +288,11 @@ public class AIPlayer extends Player {
                          cardsOfValue(valuesInGame.get(declaredValueIndex), cardsToPut) * CARD_IN_MY_DECK_TRUTH_WEIGHT;
             lieFactor += HumanStats.getCheckChanceOnLapConfidence(currentLap)
                          * (HumanStats.getCheckChanceOnLap(currentLap) - 0.5) * TRUTH_STATS_WEIGHT;
-            if (valuesInGame.size() == 2 && cardsCount(cardsToPut) == cardsOfValue(Card.CardValue.Ace) + 1)
-                lieFactor = 1;
             for (Card.CardSuit suit : Card.CardSuit.values())
                 if (cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] != 0)
                     cardFactor[Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit)] = lieFactor < LIE_THRESHOLD ? LOW_CARD_FACTOR : HIGH_CARD_FACTOR;
-            if (lieFactor < LIE_THRESHOLD) {
+            if (lieFactor < LIE_THRESHOLD && !needOneTruth) {
+                //LIE
                 for (Card.CardValue value : Card.CardValue.values())
                     if (value != valuesInGame.get(declaredValueIndex) && cardsOfValue(value) == 1)
                         for (Card.CardSuit suit : Card.CardSuit.values())
@@ -286,7 +304,7 @@ public class AIPlayer extends Player {
                 for (Card.CardSuit suit : Card.CardSuit.values())
                     if (cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] != 0)
                         cardFactor[Card.getCardIndex(Card.CardValue.Ace, suit)] = aceChoiceFactor > NON_ACE_THRESHOLD ? HIGH_CARD_FACTOR : LOW_CARD_FACTOR;
-            }
+            } else { needOneTruth = false; }
             double maxCardFactor = 0;
             for (int j = 0; j < cardFactor.length; j++)
                 if (cardFactor[j] > maxCardFactor) {
@@ -311,6 +329,7 @@ public class AIPlayer extends Player {
     @Override
     public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount,
                                              int actualCardsCount, List<Card.CardValue> valuesInGame) {
+        int nextPlayerCardsCount;
         Random rnd = new Random();
         double checkThreshold = DEFAULT_CHECK_THRESHOLD
                                 + EACH_ACTUAL_CARD_CHECK_WEIGHT * actualCardsCount
@@ -336,23 +355,20 @@ public class AIPlayer extends Player {
     // lap == 0 is the situation when the lap starter has not made another turn yet
 
     @Override
-    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount,
-                                int nextPlayerCardsNumber) {
+    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount) {
         if (!ignoreMyOwnFirstTurnNotification) {
             hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
-            ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next first turn
+            ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next this player's first turn
         }
         // laps logic
         lapStarterIndex = currentPlayerIndex;
         currentLap = 0;
         //
         previousPlayerIndex = currentPlayerIndex;
-        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkedLie, int actualCardsCount,
-                                    int nextPlayerCardsNumber) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkedLie, int actualCardsCount) {
         //gathering stats
         if (currentGamePlayersInfo[currentPlayerIndex].isHuman)
             HumanStats.recordCheckStats(isChecking, currentLap); //gather checking stats
@@ -364,7 +380,6 @@ public class AIPlayer extends Player {
             currentLap++;
 
         previousPlayerIndex = currentPlayerIndex;
-        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
     }
 
     @Override
