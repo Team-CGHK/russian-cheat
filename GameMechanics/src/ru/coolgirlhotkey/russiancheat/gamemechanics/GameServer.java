@@ -92,8 +92,8 @@ public class GameServer {
                 }
                 for (Player player : players) {
                     player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length,
-                            (playersInGame - currentPlayer)>1 ? players[currentPlayer+1].cardsCount() :
-                                    players[0].cardsCount());
+                            (playersInGame - currentPlayer)>1 ? players[currentPlayer].currentGamePlayersInfo[currentPlayer+1].getCardsCount() :
+                                    players[currentPlayer].currentGamePlayersInfo[0].getCardsCount());
                     currentPlayer++;
                     if (currentPlayer==playersInGame)
                         currentPlayer = 0;
@@ -106,8 +106,8 @@ public class GameServer {
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
                                                result.isChecking ? Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard : false,
                                                !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length,
-                            (playersInGame - currentPlayer)>1 ? players[currentPlayer+1].cardsCount() :
-                                    players[0].cardsCount());
+                            (playersInGame - currentPlayer)>1 ? players[currentPlayer].currentGamePlayersInfo[currentPlayer+1].getCardsCount() :
+                                    players[currentPlayer].currentGamePlayersInfo[0].getCardsCount());
                     currentPlayer++;
                     if (currentPlayer==playersInGame)
                         currentPlayer = 0;
