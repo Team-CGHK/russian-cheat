@@ -44,6 +44,7 @@ public class AIPlayer extends Player {
 
     int hadCardsOfDeclaredValue;
     boolean ignoreMyOwnFirstTurnNotification;
+    int nextPlayerCardsNumber;
     //
 
     private static class HumanStats {
@@ -236,6 +237,13 @@ public class AIPlayer extends Player {
     }
 
     private int[] chooseCardsToPut(int cardsOnBoard, List<Card.CardValue> valuesInGame, int declaredValueIndex) {
+        if (nextPlayerCardsNumber==0 && cardsOfValue(Card.getCardValue(declaredValueIndex))!=0){
+            int [] cardsToPut = new int [1];
+            for (Card.CardSuit suit : Card.CardSuit.values())
+                if (cards[Card.getCardIndex(Card.getCardValue(declaredValueIndex),suit)])
+                    cardsToPut[0] = Card.getCardIndex(Card.getCardValue(declaredValueIndex),suit);
+            return cardsToPut;
+        }
         Random rng = new Random();
         double cardsToPutNumberFactor = rng.nextDouble() * aggressivenessOfCardsNumber;
         int cardsToPutNumber = 1;
@@ -328,7 +336,8 @@ public class AIPlayer extends Player {
     // lap == 0 is the situation when the lap starter has not made another turn yet
 
     @Override
-    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount) {
+    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCardValue, int actualCardsCount,
+                                int nextPlayerCardsNumber) {
         if (!ignoreMyOwnFirstTurnNotification) {
             hadCardsOfDeclaredValue = cardsOfValue(declaredCardValue);
             ignoreMyOwnFirstTurnNotification = false; //is not used anywhere else, will be set into true on next first turn
@@ -338,10 +347,12 @@ public class AIPlayer extends Player {
         currentLap = 0;
         //
         previousPlayerIndex = currentPlayerIndex;
+        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkedLie, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkedLie, int actualCardsCount,
+                                    int nextPlayerCardsNumber) {
         //gathering stats
         if (currentGamePlayersInfo[currentPlayerIndex].isHuman)
             HumanStats.recordCheckStats(isChecking, currentLap); //gather checking stats
@@ -353,6 +364,7 @@ public class AIPlayer extends Player {
             currentLap++;
 
         previousPlayerIndex = currentPlayerIndex;
+        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
     }
 
     @Override

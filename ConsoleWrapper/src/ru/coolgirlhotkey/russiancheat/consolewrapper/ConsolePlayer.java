@@ -21,6 +21,7 @@ public class ConsolePlayer extends Player {
         super.name = name;
     }
 
+    int nextPlayerCardsNumber;
     @Override
     public FirstTurnResult firstTurn(List<Card.CardValue> valuesInGame) {
         System.out.printf("%s's turn: (press Enter)\n", getName());
@@ -190,12 +191,15 @@ public class ConsolePlayer extends Player {
     }
 
     @Override
-    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount) {
+    public void notifyFirstTurn(int currentPlayerIndex, Card.CardValue declaredCard, int actualCardsCount, int nextPlayerCardsNumber) {
+        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
         System.out.printf("%s's notification: %s has declared %s and put %d cards\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, declaredCard.name(), actualCardsCount);
     }
 
     @Override
-    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount) {
+    public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkSuccess, int actualCardsCount,
+                                    int nextPlayerCardsNumber) {
+        this.nextPlayerCardsNumber = nextPlayerCardsNumber;
         if (isChecking)
             System.out.printf("%s's notification: %s has checked a card #%d, it was %s\n", getName(), currentGamePlayersInfo[currentPlayerIndex].name, cardToCheck+1, Card.getCardValue(showdown).toString() + Card.getCardSuit(showdown).toString());
         else

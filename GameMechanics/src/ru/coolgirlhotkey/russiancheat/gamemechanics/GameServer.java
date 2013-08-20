@@ -76,6 +76,7 @@ public class GameServer {
         currentGameState = GameState.hasStarted;
         Random r = new Random();
         currentPlayerIndex = r.nextInt(players.length);
+        int currentPlayer=0;
         while (currentGameState == GameState.hasStarted) {
             if (cardsOnBoard.size() == 0) {
                 List<Card.CardValue> declarableValues = new ArrayList<Card.CardValue>();
@@ -89,9 +90,13 @@ public class GameServer {
                 for (int card : result.cards) {
                     takeCardFromPlayer(currentPlayerIndex, card);
                 }
-
                 for (Player player : players) {
-                    player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length);
+                    player.notifyFirstTurn(currentPlayerIndex, declaredCard, result.cards.length,
+                            (playersInGame - currentPlayer)>1 ? players[currentPlayer+1].cardsCount() :
+                                    players[0].cardsCount());
+                    currentPlayer++;
+                    if (currentPlayer==playersInGame)
+                        currentPlayer = 0;
                 }
             } else {
                 Player.DependentTurnResult result = players[currentPlayerIndex].dependentTurn
@@ -100,7 +105,12 @@ public class GameServer {
                     player.notifyDependentTurn(currentPlayerIndex, result.isChecking, result.isChecking ? result.cardToCheck : -1,
                                                result.isChecking ? cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck] : -1,
                                                result.isChecking ? Card.getCardValue(cardsOnBoard.get(cardsOnBoard.size() - 1)[result.cardToCheck]) != declaredCard : false,
-                                               !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length);
+                                               !result.isChecking ? result.cards.length : cardsOnBoard.get(cardsOnBoard.size() - 1).length,
+                            (playersInGame - currentPlayer)>1 ? players[currentPlayer+1].cardsCount() :
+                                    players[0].cardsCount());
+                    currentPlayer++;
+                    if (currentPlayer==playersInGame)
+                        currentPlayer = 0;
                 }
                 if (result.isChecking) {
                     // if the guess is wrong (the checked card is a card of the declared value), all the cards on board
