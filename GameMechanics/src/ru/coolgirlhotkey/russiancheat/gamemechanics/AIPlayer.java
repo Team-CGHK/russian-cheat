@@ -83,7 +83,7 @@ public class AIPlayer extends Player {
             }
 
             void gather(Integer positive, Integer total) {
-                if (totalData.size() == size) {
+                while (totalData.size() >= size) {
                     trueValues -= trueData.poll();
                     totalValues -= totalData.poll();
                 }
@@ -135,9 +135,9 @@ public class AIPlayer extends Player {
                 n = Math.min(Integer.parseInt(br.readLine()), lapToLieStats.length);
                 for (int i = 0; i < n; i++)
                     fillStatsWithFileLine(br, lapToLieStats[i]);
-                n = Math.min(Integer.parseInt(br.readLine()), lapToLieStats.length);
+                n = Math.min(Integer.parseInt(br.readLine()), lapToCheckStats.length);
                 for (int i = 0; i < n; i++)
-                    fillStatsWithFileLine(br, lapToLieStats[i]);
+                    fillStatsWithFileLine(br, lapToCheckStats[i]);
                 br.close();
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
