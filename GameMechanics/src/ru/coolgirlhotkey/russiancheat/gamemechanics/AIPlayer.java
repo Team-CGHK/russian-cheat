@@ -53,26 +53,45 @@ public class AIPlayer extends Player {
         static final int LAP_TO_LIE_STATS_SIZE = 5;
         static final int LAP_TO_CHECK_STATS_SIZE = 5;
 
-        static class FixedSizeBooleanStats {
-            Deque<Boolean> data = new LinkedList<Boolean>();
-            int trueValues = 0;
+        static class FixedSizeBooleanStats extends FixedSizeStats {
 
-            double getAverageValue() { return data.size() > 0 ? trueValues / data.size() : 0; }
+            FixedSizeBooleanStats(int size) {
+                super(size);
+            }
 
-            double getConfidence() {return data.size() / size; }
+            void gather(boolean value) {
+                super.gather(value ? 1 : 0, 1);
+            }
+        }
+
+        static class FixedSizeStats {
+            Deque<Integer> trueData = new LinkedList<Integer>(),
+                    totalData = new LinkedList<Integer>();
+
+            int trueValues = 0,
+                    totalValues = 0;
 
             private int size;
 
-            FixedSizeBooleanStats(int size) {
+            double getAverageValue() { return totalValues > 0 ? trueValues / totalValues : 0; }
+
+            double getConfidence() {return totalData.size() / size; }
+
+            FixedSizeStats(int size) {
                 if (size < 1) throw new IllegalArgumentException("size should be more than 0");
                 this.size = size;
             }
 
-            void gather(Boolean value) {
-                if (data.size() == size)
-                    if (data.poll()) trueValues--;
-                data.add(value);
-                if (value) trueValues++;
+            void gather(Integer positive, Integer total) {
+                if (totalData.size() == size) {
+                    trueValues -= trueData.poll();
+                    totalValues -= totalData.poll();
+                }
+                trueData.add(positive);
+                totalData.add(total);
+
+                trueValues += positive;
+                totalValues += total;
             }
         }
 
@@ -89,15 +108,21 @@ public class AIPlayer extends Player {
                 lapToCheckStats[i] = new FixedSizeBooleanStats(LAP_TO_CHECK_STATS_SIZE);
         }
 
-        static private void fillStatsWithFileLine(BufferedReader br, FixedSizeBooleanStats stats) throws IOException {
+        static private void fillStatsWithFileLine(BufferedReader br, FixedSizeStats stats) throws IOException {
             String[] parts = br.readLine().split("\\s+");
             for (int i = 0; i < parts.length && parts[i].length() > 0; i++)
-                stats.data.add(Integer.parseInt(parts[i]) == 1);
+                stats.trueData.add(Integer.parseInt(parts[i]));
+            parts = br.readLine().split("\\s+");
+            for (int i = 0; i < parts.length && parts[i].length() > 0; i++)
+                stats.totalData.add(Integer.parseInt(parts[i]));
         }
 
-        static private void printStatsToFileLine(PrintWriter pw, FixedSizeBooleanStats stats) throws IOException {
-            while (stats.data.size() > 0)
-                pw.print((stats.data.pollLast() ? 1 : 0) + " ");
+        static private void printStatsToFileLine(PrintWriter pw, FixedSizeStats stats) throws IOException {
+            while (stats.trueData.size() > 0)
+                pw.print((stats.trueData.pollLast()) + " ");
+            pw.println();
+            while (stats.totalData.size() > 0)
+                pw.print((stats.totalData.pollLast()) + " ");
             pw.println();
         }
 
@@ -219,7 +244,7 @@ public class AIPlayer extends Player {
         return new FirstTurnResult(declaredValueIndex, chooseCardsToPut(0, valuesInGame, declaredValueIndex));
     }
 
-    //this overload excludes cards in int[] exclude from the result
+    //this overload excludes cards in "int[] exclude" from the result
     private int cardsOfValue(Card.CardValue value, int[] exclude) {
         int result = cardsOfValue(value);
         for (int card : exclude)
@@ -241,7 +266,7 @@ public class AIPlayer extends Player {
             List<Integer> cardsToPut = new ArrayList<Integer>();
             for (Card.CardSuit suit : Card.CardSuit.values())
                 if (hasCard(Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit))) {
-                    cardsToPut.add(Card.getCardIndex(Card.getCardValue(declaredValueIndex), suit));
+                    cardsToPut.add(Card.getCardIndex(valuesInGame.get(declaredValueIndex), suit));
                     break;
                 }
             //workaround to avoid this turn in "AAAA8 vs 888" situation
@@ -327,13 +352,13 @@ public class AIPlayer extends Player {
     }
 
     @Override
-    public DependentTurnResult dependentTurn(Card.CardValue declaredCard, int cardsOnBoardCount,
+    public DependentTurnResult dependentTurn(Card.CardValue declaredCardValue, int cardsOnBoardCount,
                                              int actualCardsCount, List<Card.CardValue> valuesInGame) {
         int nextPlayerCardsCount;
         Random rnd = new Random();
         double checkThreshold = DEFAULT_CHECK_THRESHOLD
                                 + EACH_ACTUAL_CARD_CHECK_WEIGHT * actualCardsCount
-                                + EACH_KNOWN_DECLARED_CARD_CHECK_WEIGHT * (hadCardsOfDeclaredValue - cardsOfValue(declaredCard))
+                                + EACH_KNOWN_DECLARED_CARD_CHECK_WEIGHT * (hadCardsOfDeclaredValue - cardsOfValue(declaredCardValue))
                                 - EACH_DROPPED_CARD_VALUE_CHECK_WEIGHT * (Card.CardValue.values().length - valuesInGame.size())
                                 /* STATS INFLUENCE ON CHECK DECISION */
                                 + HumanStats.getLieChanceOnLapConfidence(currentLap)
@@ -341,10 +366,10 @@ public class AIPlayer extends Player {
                                 + HumanStats.getLieChanceOnCardsCountConfidence(actualCardsCount)
                                   * (HumanStats.getLieChanceOnCardsCount(actualCardsCount) - 0.5) * CHECK_STATS_WEIGHT;
         double checkFactor = rnd.nextDouble();
-        if (checkFactor < checkThreshold || !hasCards())  //check
-            return new DependentTurnResult(true, rnd.nextInt(actualCardsCount), null);
+        if ((checkFactor < checkThreshold || !hasCards()) && !/*END GAME*/(playersInGameCount() == 2 && nextPlayerCardsCount() == 0 && cardsOfValue(declaredCardValue) != 0))
+            return new DependentTurnResult(true, rnd.nextInt(actualCardsCount), null); //check
         else
-            return new DependentTurnResult(false, -1, chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCard)));
+            return new DependentTurnResult(false, -1, chooseCardsToPut(cardsOnBoardCount, valuesInGame, valuesInGame.indexOf(declaredCardValue)));
     }
 
     // laps logic
@@ -365,21 +390,29 @@ public class AIPlayer extends Player {
         currentLap = 0;
         //
         previousPlayerIndex = currentPlayerIndex;
+        // layers logic
+        layerAuthors.clear();
+        layerAuthors.add(currentPlayerIndex);
+        //
+        currentDeclaredValue = declaredCardValue;
     }
 
     @Override
     public void notifyDependentTurn(int currentPlayerIndex, boolean isChecking, int cardToCheck, int showdown, boolean checkedLie, int actualCardsCount) {
         //gathering stats
-        if (currentGamePlayersInfo[currentPlayerIndex].isHuman)
-            HumanStats.recordCheckStats(isChecking, currentLap); //gather checking stats
-        if (currentGamePlayersInfo[previousPlayerIndex].isHuman && isChecking)  //gather lie stats
-            HumanStats.recordLieStats(checkedLie, currentLap, actualCardsCount);
-
+        if (!(currentPlayerIndex == currentIndex && isChecking && !checkedLie)) { //if AI is not going to take the cards from the board
+            if (currentGamePlayersInfo[currentPlayerIndex].isHuman)               //otherwise the stats will be collected in notifyThisPlayerTakingCards(..)\
+                HumanStats.recordCheckStats(isChecking, currentLap);
+            if (currentGamePlayersInfo[previousPlayerIndex].isHuman && isChecking)
+                HumanStats.recordLieStats(checkedLie, currentLap, actualCardsCount);
+        }
         //laps logic
         if (currentPlayerIndex == lapStarterIndex)
             currentLap++;
-
+        //
         previousPlayerIndex = currentPlayerIndex;
+        // layers logic
+        if (!isChecking) layerAuthors.add(currentPlayerIndex);
     }
 
     @Override
@@ -390,13 +423,29 @@ public class AIPlayer extends Player {
     public void notifyPlayerTakingCards(int playerIndex, int cardsCount) {
     }
 
+    List<Integer> layerAuthors = new ArrayList<Integer>();
+    //i-th item is the index of the player, who has put the i-th layer of cards on board;
+    //needed to collect stats only for humans while taking cards from the board
+
+    Card.CardValue currentDeclaredValue;
+    //needed to determine, which card was true and which one was lie while collecting stats
+
     @Override
     public void notifyThisPlayerTakingCards(List<int[]> cards) {
+        int[] lapsForPlayer = new int[currentGamePlayersInfo.length];
+        for (int layer = 0; layer < cards.size(); layer++) {
+            if (currentGamePlayersInfo[layerAuthors.get(layer)].isHuman) {
+                int lies = 0;
+                for (int card = 0; card < cards.get(layer).length; card++) {
+                    if (Card.getCardValue(cards.get(layer)[card]) != currentDeclaredValue)
+                        lies++;
+                }
+                HumanStats.lapToLieStats[lapsForPlayer[layerAuthors.get(layer)]++].gather(lies, cards.get(layer).length);
+            }
+        }
     }
 
     @Override
     public void notifyEndGame(int[] places) {
     }
-
-
 }
