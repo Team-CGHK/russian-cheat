@@ -109,12 +109,10 @@ public class AIPlayer extends Player {
         }
 
         static private void fillStatsWithFileLine(BufferedReader br, FixedSizeStats stats) throws IOException {
-            String[] parts = br.readLine().split("\\s+");
-            for (int i = 0; i < parts.length && parts[i].length() > 0; i++)
-                stats.trueData.add(Integer.parseInt(parts[i]));
-            parts = br.readLine().split("\\s+");
-            for (int i = 0; i < parts.length && parts[i].length() > 0; i++)
-                stats.totalData.add(Integer.parseInt(parts[i]));
+            String[] partsTrue = br.readLine().split("\\s+");
+            String[] partsTotal = br.readLine().split("\\s+");
+            for (int i = 0; i < Math.min(partsTrue.length, partsTotal.length) && partsTrue[i].length() > 0; i++)
+                stats.gather(Integer.parseInt(partsTrue[i]), Integer.parseInt(partsTotal[i]));
         }
 
         static private void printStatsToFileLine(PrintWriter pw, FixedSizeStats stats) throws IOException {
